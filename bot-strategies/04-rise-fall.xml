@@ -1,0 +1,320 @@
+<xml xmlns="https://developers.google.com/blockly/xml" is_dbot="true" collection="false">
+  <variables>
+    <variable id="rf_stake">stake</variable>
+    <variable id="rf_init_stake">initial_stake</variable>
+    <variable id="rf_profit_target">profit_target</variable>
+    <variable id="rf_loss_count">loss_count</variable>
+    <variable id="rf_max_loss">max_loss_streak</variable>
+    <variable id="rf_direction">direction</variable>
+  </variables>
+
+  <!-- ═══════════════════════════════════════════════
+       MKULIMA TRADER — Rise & Fall Bot
+       Strategy : Alternates CALL / PUT on Vol 25
+       Entry    : Martingale x2 on loss, resets on win
+       Exit     : Stop at profit_target or max_loss_streak
+       Note     : direction starts TRUE = CALL first
+                  Set to FALSE to start with PUT
+       ═══════════════════════════════════════════════ -->
+  <block type="trade_definition" id="rf_trade_def" deletable="false" x="0" y="0">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" id="rf_market" deletable="false" movable="false">
+        <field name="MARKET_LIST">synthetic_index</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">R_25</field>
+        <next>
+          <block type="trade_definition_tradetype" id="rf_tradetype" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">callput</field>
+            <field name="TRADETYPE_LIST">callput</field>
+            <next>
+              <block type="trade_definition_contracttype" id="rf_contracttype" deletable="false" movable="false">
+                <field name="TYPE_LIST">both</field>
+                <next>
+                  <block type="trade_definition_candleinterval" id="rf_candle" deletable="false" movable="false">
+                    <field name="CANDLEINTERVAL_LIST">60</field>
+                    <next>
+                      <block type="trade_definition_restartbuysell" id="rf_restart" deletable="false" movable="false">
+                        <field name="TIME_MACHINE_ENABLED">FALSE</field>
+                        <next>
+                          <block type="trade_definition_restartonerror" id="rf_restarterr" deletable="false" movable="false">
+                            <field name="RESTARTONERROR">TRUE</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <statement name="INITIALIZATION">
+      <block type="variables_set" id="rf_init_stake_set">
+        <field name="VAR" id="rf_init_stake">initial_stake</field>
+        <value name="VALUE">
+          <block type="math_number" id="rf_init_num">
+            <field name="NUM">0.5</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set" id="rf_stake_set">
+            <field name="VAR" id="rf_stake">stake</field>
+            <value name="VALUE">
+              <block type="variables_get" id="rf_init_get">
+                <field name="VAR" id="rf_init_stake">initial_stake</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="rf_profit_set">
+                <field name="VAR" id="rf_profit_target">profit_target</field>
+                <value name="VALUE">
+                  <block type="math_number" id="rf_profit_num">
+                    <field name="NUM">5</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set" id="rf_maxloss_set">
+                    <field name="VAR" id="rf_max_loss">max_loss_streak</field>
+                    <value name="VALUE">
+                      <block type="math_number" id="rf_maxloss_num">
+                        <field name="NUM">8</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set" id="rf_losscount_set">
+                        <field name="VAR" id="rf_loss_count">loss_count</field>
+                        <value name="VALUE">
+                          <block type="math_number" id="rf_losscount_num">
+                            <field name="NUM">0</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="variables_set" id="rf_direction_set">
+                            <field name="VAR" id="rf_direction">direction</field>
+                            <value name="VALUE">
+                              <block type="logic_boolean" id="rf_direction_bool">
+                                <field name="BOOL">TRUE</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <statement name="SUBMARKET">
+      <block type="trade_definition_tradeoptions" id="rf_tradeopts">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" has_first_barrier="false" has_second_barrier="false" has_prediction="false"></mutation>
+        <field name="DURATIONTYPE_LIST">t</field>
+        <value name="DURATION">
+          <shadow type="math_number_positive" id="rf_dur_shadow">
+            <field name="NUM">5</field>
+          </shadow>
+        </value>
+        <value name="AMOUNT">
+          <shadow type="math_number_positive" id="rf_amt_shadow">
+            <field name="NUM">0.5</field>
+          </shadow>
+          <block type="variables_get" id="rf_stake_get">
+            <field name="VAR" id="rf_stake">stake</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+
+  <block type="before_purchase" id="rf_before" deletable="false" x="600" y="0">
+    <statement name="BEFOREPURCHASE_STACK">
+      <block type="controls_if" id="rf_direction_check">
+        <mutation else="1"></mutation>
+        <value name="IF0">
+          <block type="logic_compare" id="rf_dir_compare">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="variables_get" id="rf_dir_get">
+                <field name="VAR" id="rf_direction">direction</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="logic_boolean" id="rf_dir_true">
+                <field name="BOOL">TRUE</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="purchase" id="rf_call_purchase">
+            <field name="PURCHASE_LIST">CALL</field>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <block type="purchase" id="rf_put_purchase">
+            <field name="PURCHASE_LIST">PUT</field>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+
+  <block type="after_purchase" id="rf_after" x="600" y="320">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="controls_if" id="rf_result_check">
+        <mutation else="1"></mutation>
+        <value name="IF0">
+          <block type="contract_check_result" id="rf_win_result">
+            <field name="CHECK_RESULT">win</field>
+          </block>
+        </value>
+        <statement name="DO0">
+          <!-- WIN: reset stake, flip direction, check profit -->
+          <block type="variables_set" id="rf_win_stake_reset">
+            <field name="VAR" id="rf_stake">stake</field>
+            <value name="VALUE">
+              <block type="variables_get" id="rf_win_init_get">
+                <field name="VAR" id="rf_init_stake">initial_stake</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="rf_win_losscount_reset">
+                <field name="VAR" id="rf_loss_count">loss_count</field>
+                <value name="VALUE">
+                  <block type="math_number" id="rf_win_losscount_num">
+                    <field name="NUM">0</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set" id="rf_win_flip_direction">
+                    <field name="VAR" id="rf_direction">direction</field>
+                    <value name="VALUE">
+                      <block type="logic_negate" id="rf_flip_negate">
+                        <value name="BOOL">
+                          <block type="variables_get" id="rf_flip_dir_get">
+                            <field name="VAR" id="rf_direction">direction</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="notify" id="rf_win_notify">
+                        <field name="NOTIFICATION_TYPE">success</field>
+                        <field name="NOTIFICATION_SOUND">earned-money</field>
+                        <value name="MESSAGE">
+                          <shadow type="text" id="rf_win_msg_shadow">
+                            <field name="TEXT">Win!</field>
+                          </shadow>
+                          <block type="text" id="rf_win_msg">
+                            <field name="TEXT">Rise/Fall Win!</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="controls_if" id="rf_profit_check">
+                            <value name="IF0">
+                              <block type="logic_compare" id="rf_profit_compare">
+                                <field name="OP">LT</field>
+                                <value name="A">
+                                  <block type="total_profit" id="rf_total_profit"></block>
+                                </value>
+                                <value name="B">
+                                  <block type="variables_get" id="rf_profit_target_get">
+                                    <field name="VAR" id="rf_profit_target">profit_target</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </value>
+                            <statement name="DO0">
+                              <block type="trade_again" id="rf_win_trade_again"></block>
+                            </statement>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <!-- LOSS: double stake, keep same direction, check max streak -->
+          <block type="math_change" id="rf_loss_increment">
+            <field name="VAR" id="rf_loss_count">loss_count</field>
+            <value name="DELTA">
+              <shadow type="math_number" id="rf_loss_delta">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="variables_set" id="rf_loss_stake_double">
+                <field name="VAR" id="rf_stake">stake</field>
+                <value name="VALUE">
+                  <block type="math_arithmetic" id="rf_stake_multiply">
+                    <field name="OP">MULTIPLY</field>
+                    <value name="A">
+                      <shadow type="math_number" id="rf_mult_a">
+                        <field name="NUM">1</field>
+                      </shadow>
+                      <block type="variables_get" id="rf_loss_stake_get">
+                        <field name="VAR" id="rf_stake">stake</field>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <shadow type="math_number" id="rf_mult_b">
+                        <field name="NUM">2</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </value>
+                <next>
+                  <block type="notify" id="rf_loss_notify">
+                    <field name="NOTIFICATION_TYPE">error</field>
+                    <field name="NOTIFICATION_SOUND">silent</field>
+                    <value name="MESSAGE">
+                      <shadow type="text" id="rf_loss_msg_shadow">
+                        <field name="TEXT">Loss.</field>
+                      </shadow>
+                      <block type="text" id="rf_loss_msg">
+                        <field name="TEXT">Loss. Same direction, doubled stake.</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="controls_if" id="rf_loss_streak_check">
+                        <value name="IF0">
+                          <block type="logic_compare" id="rf_streak_compare">
+                            <field name="OP">LT</field>
+                            <value name="A">
+                              <block type="variables_get" id="rf_loss_count_get">
+                                <field name="VAR" id="rf_loss_count">loss_count</field>
+                              </block>
+                            </value>
+                            <value name="B">
+                              <block type="variables_get" id="rf_max_loss_get">
+                                <field name="VAR" id="rf_max_loss">max_loss_streak</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <statement name="DO0">
+                          <block type="trade_again" id="rf_loss_trade_again"></block>
+                        </statement>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+</xml>

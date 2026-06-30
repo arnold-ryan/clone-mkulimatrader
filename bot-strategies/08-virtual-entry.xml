@@ -1,0 +1,383 @@
+<xml xmlns="https://developers.google.com/blockly/xml" is_dbot="true" collection="false">
+  <variables>
+    <variable id="ve_stake">stake</variable>
+    <variable id="ve_init_stake">initial_stake</variable>
+    <variable id="ve_profit_target">profit_target</variable>
+    <variable id="ve_loss_count">loss_count</variable>
+    <variable id="ve_max_loss">max_loss_streak</variable>
+    <variable id="ve_confirm_streak">confirm_streak</variable>
+    <variable id="ve_required_streak">required_streak</variable>
+    <variable id="ve_last_result">last_result</variable>
+    <variable id="ve_consecutive_wins">consecutive_wins</variable>
+    <variable id="ve_armed">armed</variable>
+  </variables>
+
+  <!-- ═══════════════════════════════════════════════
+       MKULIMA TRADER — Virtual Entry Bot
+       Strategy : "Wait and confirm" — watches for
+                  required_streak consecutive same-side
+                  results, then enters on the opposite
+                  direction expecting a reversal.
+       Market   : Vol 75 (1s)
+       Logic    : Count consecutive EVEN results.
+                  After required_streak in a row, arm
+                  the bot to bet ODD on next tick.
+       Settings : required_streak = 3 (adjust freely)
+                  initial_stake   = 1 USD
+                  profit_target   = 10 USD
+       ═══════════════════════════════════════════════ -->
+  <block type="trade_definition" id="ve_trade_def" deletable="false" x="0" y="0">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" id="ve_market" deletable="false" movable="false">
+        <field name="MARKET_LIST">synthetic_index</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">1HZ75V</field>
+        <next>
+          <block type="trade_definition_tradetype" id="ve_tradetype" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">digits</field>
+            <field name="TRADETYPE_LIST">evenodd</field>
+            <next>
+              <block type="trade_definition_contracttype" id="ve_contracttype" deletable="false" movable="false">
+                <field name="TYPE_LIST">odd</field>
+                <next>
+                  <block type="trade_definition_candleinterval" id="ve_candle" deletable="false" movable="false">
+                    <field name="CANDLEINTERVAL_LIST">60</field>
+                    <next>
+                      <block type="trade_definition_restartbuysell" id="ve_restart" deletable="false" movable="false">
+                        <field name="TIME_MACHINE_ENABLED">FALSE</field>
+                        <next>
+                          <block type="trade_definition_restartonerror" id="ve_restarterr" deletable="false" movable="false">
+                            <field name="RESTARTONERROR">TRUE</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <statement name="INITIALIZATION">
+      <block type="variables_set" id="ve_init_stake_set">
+        <field name="VAR" id="ve_init_stake">initial_stake</field>
+        <value name="VALUE">
+          <block type="math_number" id="ve_init_num">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set" id="ve_stake_set">
+            <field name="VAR" id="ve_stake">stake</field>
+            <value name="VALUE">
+              <block type="variables_get" id="ve_init_get">
+                <field name="VAR" id="ve_init_stake">initial_stake</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="ve_profit_set">
+                <field name="VAR" id="ve_profit_target">profit_target</field>
+                <value name="VALUE">
+                  <block type="math_number" id="ve_profit_num">
+                    <field name="NUM">10</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set" id="ve_maxloss_set">
+                    <field name="VAR" id="ve_max_loss">max_loss_streak</field>
+                    <value name="VALUE">
+                      <block type="math_number" id="ve_maxloss_num">
+                        <field name="NUM">5</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set" id="ve_losscount_set">
+                        <field name="VAR" id="ve_loss_count">loss_count</field>
+                        <value name="VALUE">
+                          <block type="math_number" id="ve_losscount_num">
+                            <field name="NUM">0</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="variables_set" id="ve_required_streak_set">
+                            <field name="VAR" id="ve_required_streak">required_streak</field>
+                            <value name="VALUE">
+                              <!-- Wait for this many consecutive EVEN results
+                                   before entering with an ODD bet -->
+                              <block type="math_number" id="ve_req_streak_num">
+                                <field name="NUM">3</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="variables_set" id="ve_confirm_streak_set">
+                                <field name="VAR" id="ve_confirm_streak">confirm_streak</field>
+                                <value name="VALUE">
+                                  <block type="math_number" id="ve_confirm_num">
+                                    <field name="NUM">0</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="variables_set" id="ve_armed_set">
+                                    <field name="VAR" id="ve_armed">armed</field>
+                                    <value name="VALUE">
+                                      <block type="logic_boolean" id="ve_armed_bool">
+                                        <field name="BOOL">FALSE</field>
+                                      </block>
+                                    </value>
+                                    <next>
+                                      <block type="variables_set" id="ve_last_result_set">
+                                        <field name="VAR" id="ve_last_result">last_result</field>
+                                        <value name="VALUE">
+                                          <block type="text" id="ve_last_result_text">
+                                            <field name="TEXT">none</field>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <statement name="SUBMARKET">
+      <!-- Only trade when armed (streak condition met) -->
+      <block type="controls_if" id="ve_armed_gate">
+        <value name="IF0">
+          <block type="logic_compare" id="ve_armed_compare">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="variables_get" id="ve_armed_get">
+                <field name="VAR" id="ve_armed">armed</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="logic_boolean" id="ve_armed_true">
+                <field name="BOOL">TRUE</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="trade_definition_tradeoptions" id="ve_tradeopts">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" has_first_barrier="false" has_second_barrier="false" has_prediction="false"></mutation>
+            <field name="DURATIONTYPE_LIST">t</field>
+            <value name="DURATION">
+              <shadow type="math_number_positive" id="ve_dur_shadow">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <value name="AMOUNT">
+              <shadow type="math_number_positive" id="ve_amt_shadow">
+                <field name="NUM">1</field>
+              </shadow>
+              <block type="variables_get" id="ve_stake_get">
+                <field name="VAR" id="ve_stake">stake</field>
+              </block>
+            </value>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+
+  <block type="before_purchase" id="ve_before" deletable="false" x="600" y="0">
+    <statement name="BEFOREPURCHASE_STACK">
+      <block type="controls_if" id="ve_armed_before_check">
+        <value name="IF0">
+          <block type="logic_compare" id="ve_armed_before_compare">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="variables_get" id="ve_armed_before_get">
+                <field name="VAR" id="ve_armed">armed</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="logic_boolean" id="ve_armed_before_true">
+                <field name="BOOL">TRUE</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <!-- After 3 consecutive EVENs, bet ODD (reversal) -->
+          <block type="purchase" id="ve_purchase">
+            <field name="PURCHASE_LIST">DIGITODD</field>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+
+  <block type="after_purchase" id="ve_after" x="600" y="320">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="controls_if" id="ve_result_check">
+        <mutation else="1"></mutation>
+        <value name="IF0">
+          <block type="contract_check_result" id="ve_win_result">
+            <field name="CHECK_RESULT">win</field>
+          </block>
+        </value>
+        <statement name="DO0">
+          <!-- WIN: disarm, reset stake and streak, check profit -->
+          <block type="variables_set" id="ve_win_armed_reset">
+            <field name="VAR" id="ve_armed">armed</field>
+            <value name="VALUE">
+              <block type="logic_boolean" id="ve_win_armed_false">
+                <field name="BOOL">FALSE</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="ve_win_confirm_reset">
+                <field name="VAR" id="ve_confirm_streak">confirm_streak</field>
+                <value name="VALUE">
+                  <block type="math_number" id="ve_win_confirm_num">
+                    <field name="NUM">0</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set" id="ve_win_stake_reset">
+                    <field name="VAR" id="ve_stake">stake</field>
+                    <value name="VALUE">
+                      <block type="variables_get" id="ve_win_init_get">
+                        <field name="VAR" id="ve_init_stake">initial_stake</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set" id="ve_win_loss_reset">
+                        <field name="VAR" id="ve_loss_count">loss_count</field>
+                        <value name="VALUE">
+                          <block type="math_number" id="ve_win_loss_num">
+                            <field name="NUM">0</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="notify" id="ve_win_notify">
+                            <field name="NOTIFICATION_TYPE">success</field>
+                            <field name="NOTIFICATION_SOUND">earned-money</field>
+                            <value name="MESSAGE">
+                              <shadow type="text" id="ve_win_msg_shadow">
+                                <field name="TEXT">Virtual Entry Win!</field>
+                              </shadow>
+                              <block type="text" id="ve_win_msg">
+                                <field name="TEXT">Virtual Entry Win! Watching for next pattern.</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="controls_if" id="ve_profit_check">
+                                <value name="IF0">
+                                  <block type="logic_compare" id="ve_profit_compare">
+                                    <field name="OP">LT</field>
+                                    <value name="A">
+                                      <block type="total_profit" id="ve_total_profit"></block>
+                                    </value>
+                                    <value name="B">
+                                      <block type="variables_get" id="ve_profit_target_get">
+                                        <field name="VAR" id="ve_profit_target">profit_target</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </value>
+                                <statement name="DO0">
+                                  <block type="trade_again" id="ve_win_trade_again"></block>
+                                </statement>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <!-- LOSS: martingale stake, stay armed, track streak -->
+          <block type="math_change" id="ve_loss_increment">
+            <field name="VAR" id="ve_loss_count">loss_count</field>
+            <value name="DELTA">
+              <shadow type="math_number" id="ve_loss_delta">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="variables_set" id="ve_loss_stake_double">
+                <field name="VAR" id="ve_stake">stake</field>
+                <value name="VALUE">
+                  <block type="math_arithmetic" id="ve_stake_multiply">
+                    <field name="OP">MULTIPLY</field>
+                    <value name="A">
+                      <shadow type="math_number" id="ve_mult_a">
+                        <field name="NUM">1</field>
+                      </shadow>
+                      <block type="variables_get" id="ve_loss_stake_get">
+                        <field name="VAR" id="ve_stake">stake</field>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <shadow type="math_number" id="ve_mult_b">
+                        <field name="NUM">2</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </value>
+                <next>
+                  <block type="notify" id="ve_loss_notify">
+                    <field name="NOTIFICATION_TYPE">error</field>
+                    <field name="NOTIFICATION_SOUND">silent</field>
+                    <value name="MESSAGE">
+                      <shadow type="text" id="ve_loss_msg_shadow">
+                        <field name="TEXT">Loss. Staying in pattern.</field>
+                      </shadow>
+                      <block type="text" id="ve_loss_msg">
+                        <field name="TEXT">Loss. Martingale recovery active.</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="controls_if" id="ve_streak_check">
+                        <value name="IF0">
+                          <block type="logic_compare" id="ve_streak_compare">
+                            <field name="OP">LT</field>
+                            <value name="A">
+                              <block type="variables_get" id="ve_loss_count_get">
+                                <field name="VAR" id="ve_loss_count">loss_count</field>
+                              </block>
+                            </value>
+                            <value name="B">
+                              <block type="variables_get" id="ve_max_loss_get">
+                                <field name="VAR" id="ve_max_loss">max_loss_streak</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <statement name="DO0">
+                          <block type="trade_again" id="ve_loss_trade_again"></block>
+                        </statement>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+</xml>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Classic Trader — Mkulima Trader</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    .classic-wrap { max-width: 820px; margin: 2rem auto; padding: 0 1.5rem; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+    .contract-selector { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.5rem; margin-bottom: 1rem; }
+    .contract-btn {
+      padding: 0.6rem 0.25rem; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--bg3); color: var(--text-muted); font-size: 0.78rem; font-weight: 600;
+      text-align: center; cursor: pointer; transition: all 0.15s; line-height: 1.4;
+    }
+    .contract-btn:hover  { border-color: var(--secondary); color: var(--text); }
+    .contract-btn.active { border-color: var(--primary); background: rgba(29,189,160,0.1); color: var(--primary); }
+
+    .buy-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.25rem; }
+    .buy-btn {
+      padding: 1rem; border: none; border-radius: 10px; cursor: pointer;
+      font-size: 0.95rem; font-weight: 700; display: flex; flex-direction: column;
+      align-items: center; gap: 0.2rem; transition: all 0.15s;
+    }
+    .buy-btn small { font-size: 0.72rem; font-weight: 400; opacity: 0.8; }
+    .buy-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+
+    .positions-panel { margin-top: 2rem; }
+    .empty-state { text-align:center; padding:2.5rem 1rem; color:var(--text-muted); }
+    .empty-state .icon { font-size:2.5rem; margin-bottom:0.5rem; }
+
+    .ticker-bar {
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      overflow: hidden; padding: 0.5rem 0; position: relative;
+    }
+    .ticker-inner { display: flex; gap: 2rem; animation: ticker 30s linear infinite; white-space: nowrap; padding: 0 1rem; }
+    @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    .ticker-item { font-size: 0.78rem; display: inline-flex; gap: 0.35rem; align-items: center; }
+    .ticker-name { color: var(--text-muted); }
+    .ticker-price { font-family: monospace; font-weight: 600; }
+
+    .payout-bar { background: var(--bg3); border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+    .payout-row { display: flex; justify-content: space-between; margin-bottom: 0.35rem; font-size:0.85rem; }
+    .payout-row:last-child { margin-bottom: 0; }
+    .payout-row .label { color: var(--text-muted); }
+    .payout-row .val { font-weight:700; font-family:monospace; }
+  </style>
+</head>
+<body>
+
+<!-- ═══ TICKER BAR ═══ -->
+<div class="ticker-bar" id="tickerBar">
+  <div class="ticker-inner" id="tickerInner"></div>
+</div>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="logo-mark">MT</div>
+    Mkulima <span class="accent">Trader</span>
+  </a>
+  <nav class="navbar-nav">
+    <a href="/trader"   class="nav-link">⚡ Trader</a>
+    <a href="/bot"      class="nav-link">🤖 Bot</a>
+    <a href="/classic"  class="nav-link">📈 Classic</a>
+    <a href="/analyser" class="nav-link">🔢 Analyser</a>
+    <button class="theme-btn" id="themeBtn">☀️</button>
+    <a href="#" class="nav-link cta" onclick="MT.modal.open('loginModal');return false;">Sign In</a>
+  </nav>
+</nav>
+
+<div class="classic-wrap">
+
+  <!-- Account bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;padding:0.85rem 1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;">
+    <div style="display:flex;gap:2rem;">
+      <div>
+        <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Balance</div>
+        <div style="font-size:1.15rem;font-weight:700;font-family:monospace;" id="c_balance">$10,000.00</div>
+      </div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Session P&L</div>
+        <div style="font-size:1.15rem;font-weight:700;font-family:monospace;color:var(--primary);" id="c_pnl">+$0.00</div>
+      </div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Trades</div>
+        <div style="font-size:1.15rem;font-weight:700;font-family:monospace;" id="c_trades">0</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <span class="badge badge-primary">DEMO</span>
+      <button class="btn btn-sm btn-outline" onclick="MT.modal.open('loginModal')">Connect Real</button>
+    </div>
+  </div>
+
+  <!-- Trade form card -->
+  <div class="card">
+    <div class="form-row" style="margin-bottom:1rem;">
+      <!-- Market -->
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Market</label>
+        <select class="form-control" id="c_market" onchange="updatePrice()">
+          <optgroup label="Volatility (1s)">
+            <option value="V10 (1s)">Vol 10 (1s) Index</option>
+            <option value="V25 (1s)">Vol 25 (1s) Index</option>
+            <option value="V50 (1s)">Vol 50 (1s) Index</option>
+            <option value="V75 (1s)">Vol 75 (1s) Index</option>
+            <option value="V100 (1s)" selected>Vol 100 (1s) Index</option>
+          </optgroup>
+          <optgroup label="Volatility">
+            <option value="V10">Volatility 10 Index</option>
+            <option value="V25">Volatility 25 Index</option>
+            <option value="V50">Volatility 50 Index</option>
+            <option value="V75">Volatility 75 Index</option>
+            <option value="V100">Volatility 100 Index</option>
+          </optgroup>
+          <optgroup label="Step & Jump">
+            <option value="Step Index">Step Index</option>
+            <option value="Jump 10">Jump 10 Index</option>
+            <option value="Jump 25">Jump 25 Index</option>
+            <option value="Jump 50">Jump 50 Index</option>
+            <option value="Jump 75">Jump 75 Index</option>
+            <option value="Jump 100">Jump 100 Index</option>
+          </optgroup>
+        </select>
+      </div>
+      <!-- Live price -->
+      <div style="display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:0.25rem;">
+        <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;">Live Price</div>
+        <div style="display:flex;align-items:baseline;gap:0.5rem;">
+          <span style="font-size:1.5rem;font-weight:700;font-family:monospace;color:var(--primary);" id="c_livePrice">4921.66</span>
+          <span style="font-size:0.8rem;font-weight:600;" id="c_livePriceChange" class="up">+0.00%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contract type -->
+    <label class="form-label">Contract Type</label>
+    <div class="contract-selector" id="contractSelector">
+      <button class="contract-btn active" onclick="selectContract('Rise/Fall',this,'▲ Rise','▼ Fall')">📈 Rise/Fall</button>
+      <button class="contract-btn"        onclick="selectContract('Even/Odd',this,'🔵 Even','🔴 Odd')">🎲 Even/Odd</button>
+      <button class="contract-btn"        onclick="selectContract('Over/Under',this,'▲ Over 4','▼ Under 5')">🔢 Over/Under</button>
+      <button class="contract-btn"        onclick="selectContract('Matches',this,'✓ Matches','✗ Differs')">🎯 Match/Diff</button>
+      <button class="contract-btn"        onclick="selectContract('Accumulator',this,'▶ Accumulate','')">💹 Accum.</button>
+      <button class="contract-btn"        onclick="selectContract('Touch',this,'👆 Touch','🚫 No Touch')">🎰 Touch</button>
+    </div>
+
+    <!-- Prediction (for digit contracts) -->
+    <div id="predictionRow" class="form-group" style="display:none;">
+      <label class="form-label">Prediction Digit</label>
+      <div style="display:flex;gap:0.35rem;flex-wrap:wrap;">
+        ${[0,1,2,3,4,5,6,7,8,9].map(d=>`<button class="btn btn-outline btn-sm${d===5?' btn-primary':''}" onclick="setPrediction(${d},this)">${d}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="form-row">
+      <!-- Duration -->
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Duration</label>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:0.4rem;">
+          <select class="form-control" id="c_durVal">
+            <option>1</option><option>2</option><option>3</option><option>5</option><option>10</option>
+          </select>
+          <select class="form-control" id="c_durUnit">
+            <option>Tick(s)</option><option>Min(s)</option>
+          </select>
+        </div>
+      </div>
+      <!-- Stake -->
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Stake (USD)</label>
+        <div style="position:relative;">
+          <span style="position:absolute;left:0.65rem;top:50%;transform:translateY(-50%);color:var(--text-muted);">$</span>
+          <input class="form-control" type="number" id="c_stake" value="1.00" min="0.35" step="0.01" style="padding-left:1.5rem;" oninput="updatePayout()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Payout summary -->
+    <div class="payout-bar">
+      <div class="payout-row"><span class="label">Stake</span><span class="val" id="pb_stake">$1.00</span></div>
+      <div class="payout-row"><span class="label">Payout</span><span class="val up" id="pb_payout">$1.85</span></div>
+      <div class="payout-row"><span class="label">Profit on win</span><span class="val up" id="pb_profit">+$0.85</span></div>
+    </div>
+
+    <!-- Buy buttons -->
+    <div class="buy-buttons">
+      <button class="buy-btn btn-call" id="buyBtn1" onclick="buy('A')">
+        <span id="buyLabel1">▲ Rise</span>
+        <small id="buyMeta1">Price goes up</small>
+      </button>
+      <button class="buy-btn btn-put" id="buyBtn2" onclick="buy('B')">
+        <span id="buyLabel2">▼ Fall</span>
+        <small id="buyMeta2">Price goes down</small>
+      </button>
+    </div>
+  </div>
+
+  <!-- Open positions -->
+  <div class="positions-panel">
+    <h3 style="margin-bottom:1rem;">Open Positions</h3>
+    <div id="openPositions">
+      <div class="empty-state"><div class="icon">📭</div><div>No open positions</div></div>
+    </div>
+  </div>
+
+  <!-- Trade history -->
+  <div class="positions-panel">
+    <h3 style="margin-bottom:1rem;">Trade History</h3>
+    <div id="tradeHistory">
+      <div class="empty-state"><div class="icon">🕐</div><div>No history yet</div></div>
+    </div>
+  </div>
+
+</div><!-- /classic-wrap -->
+
+<!-- ═══ LOGIN MODAL ═══ -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:0.5rem;">🔐</div>
+    <div class="modal-title">Connect Your Deriv Account</div>
+    <div class="modal-body">Sign in with your Deriv account to trade with real funds.</div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+      <a href="#" class="btn btn-primary btn-full" onclick="MT.modal.closeAll();MT.toast.show('Add CLIENT_ID to enable OAuth','info');return false;">Sign in with Deriv</a>
+      <a href="https://deriv.com/signup" target="_blank" class="btn btn-outline btn-full">Create Account</a>
+    </div>
+    <button onclick="MT.modal.closeAll()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
+  </div>
+</div>
+
+<!-- ═══ RESULT MODAL ═══ -->
+<div class="modal-overlay" id="resultModal">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:3rem;" id="resultIcon">🎉</div>
+    <div class="modal-title" id="resultTitle">Win!</div>
+    <div class="modal-body" id="resultBody"></div>
+    <div class="modal-footer" style="justify-content:center;">
+      <button class="btn btn-primary" onclick="MT.modal.closeAll()">Trade Again</button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/main.js"></script>
+<script>
+let cState = {
+  contract: 'Rise/Fall',
+  buyLabels: ['▲ Rise', '▼ Fall'],
+  prediction: 5,
+  balance: 10000, pnl: 0, trades: 0,
+  openPositions: [], history: []
+};
+
+// ─── Contract select ──────────────────────────────────
+function selectContract(type, btn, l1, l2) {
+  cState.contract = type;
+  cState.buyLabels = [l1, l2];
+  document.querySelectorAll('.contract-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('buyLabel1').textContent = l1;
+  document.getElementById('buyLabel2').textContent = l2;
+  document.getElementById('buyMeta1').textContent  = '';
+  document.getElementById('buyMeta2').textContent  = '';
+  document.getElementById('predictionRow').style.display = ['Matches','Over/Under'].includes(type) ? '' : 'none';
+  if (!l2) { document.getElementById('buyBtn2').style.display = 'none'; } else { document.getElementById('buyBtn2').style.display = ''; }
+}
+
+function setPrediction(d, btn) {
+  cState.prediction = d;
+  document.querySelectorAll('#predictionRow button').forEach(b => { b.classList.remove('btn-primary'); b.classList.add('btn-outline'); });
+  btn.classList.remove('btn-outline'); btn.classList.add('btn-primary');
+}
+
+// ─── Price display ────────────────────────────────────
+function updatePrice() {
+  const market = document.getElementById('c_market').value;
+  const d = MT.prices.data[market];
+  if (!d) return;
+  document.getElementById('c_livePrice').textContent = d.price.toFixed(d.pip||2);
+  const chg = d.change || 0;
+  const el = document.getElementById('c_livePriceChange');
+  el.textContent = (chg>=0?'+':'')+chg.toFixed(3)+'%';
+  el.className = chg>=0?'up':'down';
+}
+
+// ─── Payout ───────────────────────────────────────────
+function updatePayout() {
+  const stake = parseFloat(document.getElementById('c_stake').value) || 1;
+  const payoutMult = { 'Rise/Fall':0.85,'Even/Odd':0.85,'Over/Under':0.85,'Matches':8.5,'Accumulator':0,'Touch':0.85 };
+  const mult = payoutMult[cState.contract] ?? 0.85;
+  const payout = stake + stake * mult;
+  document.getElementById('pb_stake').textContent  = '$' + stake.toFixed(2);
+  document.getElementById('pb_payout').textContent = '$' + payout.toFixed(2);
+  document.getElementById('pb_profit').textContent = '+$' + (stake*mult).toFixed(2);
+}
+
+// ─── Buy ──────────────────────────────────────────────
+let posId = 1;
+function buy(side) {
+  const stake  = parseFloat(document.getElementById('c_stake').value) || 1;
+  const market = document.getElementById('c_market').value;
+  const d      = MT.prices.data[market];
+  const entry  = d ? d.price : 0;
+  const label  = side === 'A' ? cState.buyLabels[0] : cState.buyLabels[1];
+  const ticks  = parseInt(document.getElementById('c_durVal').value) || 1;
+  const id     = posId++;
+
+  const pos = { id, market, label, stake, entry, side };
+  cState.openPositions.push(pos);
+  renderOpenPositions();
+  MT.toast.show(`${label} placed on ${market}`, 'info');
+
+  // Settle after ticks * ~400ms
+  setTimeout(() => {
+    const exit = MT.prices.data[market]?.price || entry;
+    let win;
+    if (cState.contract === 'Rise/Fall')   win = side==='A' ? exit>entry : exit<entry;
+    else if (cState.contract === 'Even/Odd') win = side==='A' ? parseInt(exit.toFixed(d?.pip||2).slice(-1))%2===0 : parseInt(exit.toFixed(d?.pip||2).slice(-1))%2!==0;
+    else win = Math.random() > 0.45;
+
+    const payoutMult = { 'Rise/Fall':0.85,'Even/Odd':0.85,'Over/Under':0.85,'Matches':8.5,'Accumulator':0,'Touch':0.85 };
+    const pnl = win ? stake*(payoutMult[cState.contract]??0.85) : -stake;
+
+    cState.balance += pnl; cState.pnl += pnl; cState.trades++;
+    cState.openPositions = cState.openPositions.filter(p=>p.id!==id);
+    cState.history.unshift({...pos, exit, pnl, win});
+    if (cState.history.length > 20) cState.history.pop();
+
+    renderOpenPositions();
+    renderHistory();
+    updateAccountBar();
+
+    document.getElementById('resultIcon').textContent  = win ? '🎉' : '😔';
+    document.getElementById('resultTitle').textContent = win ? 'You Won!' : 'You Lost';
+    document.getElementById('resultBody').innerHTML = `
+      <strong>${label}</strong> on <strong>${market}</strong><br>
+      Entry: ${entry.toFixed(d?.pip||2)} → Exit: ${exit.toFixed(d?.pip||2)}<br>
+      <span style="font-size:1.2rem;font-weight:700;color:${win?'var(--primary)':'var(--danger)'};">
+        ${pnl>=0?'+$':'-$'}${Math.abs(pnl).toFixed(2)}
+      </span>
+    `;
+    MT.modal.open('resultModal');
+  }, Math.max(1200, ticks * 400));
+}
+
+// ─── Render ───────────────────────────────────────────
+function renderOpenPositions() {
+  const el = document.getElementById('openPositions');
+  if (!cState.openPositions.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">📭</div><div>No open positions</div></div>';
+    return;
+  }
+  el.innerHTML = `<table><thead><tr><th>Contract</th><th>Market</th><th>Stake</th><th>Entry</th><th>Status</th></tr></thead><tbody>
+    ${cState.openPositions.map(p=>`<tr>
+      <td><span style="font-weight:600;">${p.label}</span></td>
+      <td style="color:var(--text-muted);">${p.market}</td>
+      <td>$${p.stake.toFixed(2)}</td>
+      <td style="font-family:monospace;">${p.entry.toFixed(2)}</td>
+      <td><span class="badge badge-amber">Pending…</span></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function renderHistory() {
+  const el = document.getElementById('tradeHistory');
+  if (!cState.history.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">🕐</div><div>No history yet</div></div>';
+    return;
+  }
+  el.innerHTML = `<table><thead><tr><th>Contract</th><th>Market</th><th>Stake</th><th>Result</th><th>P&L</th></tr></thead><tbody>
+    ${cState.history.slice(0,15).map(p=>`<tr>
+      <td>${p.label}</td>
+      <td style="font-size:0.8rem;color:var(--text-muted);">${p.market}</td>
+      <td>$${p.stake.toFixed(2)}</td>
+      <td>${p.win?'<span class="badge badge-primary">Win</span>':'<span class="badge badge-danger">Loss</span>'}</td>
+      <td class="${p.pnl>=0?'up':'down'}" style="font-family:monospace;font-weight:700;">${p.pnl>=0?'+':''}$${Math.abs(p.pnl).toFixed(2)}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function updateAccountBar() {
+  document.getElementById('c_balance').textContent = '$'+cState.balance.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const pnlEl = document.getElementById('c_pnl');
+  pnlEl.textContent = (cState.pnl>=0?'+$':'-$')+Math.abs(cState.pnl).toFixed(2);
+  pnlEl.style.color = cState.pnl>=0?'var(--primary)':'var(--danger)';
+  document.getElementById('c_trades').textContent = cState.trades;
+}
+
+// ─── Ticker bar ───────────────────────────────────────
+function buildTicker() {
+  const markets = Object.keys(MT.prices.data);
+  const inner = document.getElementById('tickerInner');
+  // Duplicate for seamless scroll
+  const html = [...markets,...markets].map(n => {
+    const d = MT.prices.data[n];
+    return `<span class="ticker-item">
+      <span class="ticker-name">${n}</span>
+      <span class="ticker-price up" data-market="${n}">${d.price.toFixed(d.pip||2)}</span>
+    </span>`;
+  }).join('');
+  inner.innerHTML = html;
+}
+
+function updateTicker() {
+  Object.keys(MT.prices.data).forEach(n => MT.prices.tick(n));
+  document.querySelectorAll('[data-market]').forEach(el => {
+    const n = el.dataset.market;
+    const d = MT.prices.data[n];
+    if (!d) return;
+    el.textContent = d.price.toFixed(d.pip||2);
+    el.className = 'ticker-price ' + ((d.change||0)>=0?'up':'down');
+  });
+  updatePrice();
+}
+
+// ─── Boot ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildTicker();
+  updatePrice();
+  updatePayout();
+  setInterval(updateTicker, 500);
+});
+</script>
+</body>
+</html>

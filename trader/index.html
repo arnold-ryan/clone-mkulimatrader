@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trader — Mkulima Trader</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    /* ── Trader-specific styles ── */
+    .chart-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 1rem; border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .chart-market-name { font-size: 1rem; font-weight: 700; }
+    .chart-price       { font-size: 1.3rem; font-weight: 700; font-family: monospace; color: var(--primary); }
+    .chart-change      { font-size: 0.8rem; font-weight: 600; }
+    canvas#priceChart  { width: 100%; flex: 1; display: block; }
+
+    .trade-pair-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem; }
+    .trade-pair-btns .btn { padding: 0.75rem; flex-direction: column; gap: 0.1rem; }
+    .trade-pair-btns .btn small { font-size: 0.7rem; font-weight: 400; opacity: 0.8; }
+
+    .contract-type-tabs { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .contract-type-tabs button {
+      padding: 0.25rem 0.6rem; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg3); color: var(--text-muted); font-size: 0.75rem;
+      font-weight: 600; cursor: pointer; transition: all 0.15s;
+    }
+    .contract-type-tabs button.active { background: rgba(29,189,160,0.15); border-color: var(--primary); color: var(--primary); }
+
+    .position-row td:last-child { font-family: monospace; font-weight: 700; }
+    .pos-type { font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.4rem; border-radius: 4px; }
+    .pos-call { background: rgba(29,189,160,0.15); color: var(--primary); }
+    .pos-put  { background: rgba(249,86,86,0.15);  color: var(--danger);  }
+  </style>
+</head>
+<body>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="logo-mark">MT</div>
+    Mkulima <span class="accent">Trader</span>
+  </a>
+  <nav class="navbar-nav">
+    <a href="/trader"   class="nav-link">⚡ Trader</a>
+    <a href="/bot"      class="nav-link">🤖 Bot</a>
+    <a href="/classic"  class="nav-link">📈 Classic</a>
+    <a href="/analyser" class="nav-link">🔢 Analyser</a>
+    <button class="theme-btn" id="themeBtn">☀️</button>
+    <a href="#" class="nav-link cta" onclick="MT.modal.open('loginModal');return false;">Sign In</a>
+  </nav>
+</nav>
+
+<!-- ═══ MAIN LAYOUT ═══ -->
+<div class="page-layout">
+
+  <!-- LEFT: Market list -->
+  <aside class="sidebar">
+    <div class="panel-header">
+      <h4>Markets</h4>
+      <input class="form-control" style="width:90px;padding:0.25rem 0.5rem;font-size:0.75rem;" placeholder="Search…" oninput="filterMarkets(this.value)" />
+    </div>
+
+    <div style="padding:0.4rem 0.75rem; border-bottom:1px solid var(--border);">
+      <div class="tab-bar" style="padding:0.25rem;">
+        <button class="tab-btn active" onclick="setMarketGroup('synthetic',this)">Synthetic</button>
+        <button class="tab-btn"        onclick="setMarketGroup('jump',this)">Jump</button>
+        <button class="tab-btn"        onclick="setMarketGroup('step',this)">Step</button>
+      </div>
+    </div>
+
+    <div id="marketList"></div>
+  </aside>
+
+  <!-- CENTER: Chart -->
+  <main class="main-panel">
+    <div class="chart-header">
+      <div>
+        <div class="chart-market-name" id="chartMarketName">Volatility 100 (1s) Index</div>
+        <div style="display:flex;gap:1rem;align-items:baseline;">
+          <span class="chart-price" id="chartPrice">4921.66</span>
+          <span class="chart-change up" id="chartChange">+0.00%</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <span style="font-size:0.75rem;color:var(--text-muted);">Last digit:</span>
+        <span id="lastDigit" style="font-size:1.5rem;font-weight:800;color:var(--amber);font-family:monospace;">6</span>
+        <div class="badge badge-primary" style="margin-left:0.5rem;">LIVE</div>
+      </div>
+    </div>
+    <canvas id="priceChart"></canvas>
+    <!-- Digit strip -->
+    <div style="padding:0.5rem 1rem;background:var(--bg2);border-top:1px solid var(--border);display:flex;gap:0.4rem;align-items:center;overflow-x:auto;">
+      <span style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;">Last digits:</span>
+      <div id="digitStrip" style="display:flex;gap:0.3rem;flex:1;"></div>
+    </div>
+  </main>
+
+  <!-- RIGHT: Trade form + positions -->
+  <aside class="sidebar-right">
+    <div class="panel-header"><h4>Place Trade</h4></div>
+    <div class="panel-body">
+
+      <!-- Contract types -->
+      <div class="form-group">
+        <label class="form-label">Contract Type</label>
+        <div class="contract-type-tabs" id="contractTabs">
+          <button class="active" onclick="selectContract('Rise/Fall',this)">Rise/Fall</button>
+          <button onclick="selectContract('Even/Odd',this)">Even/Odd</button>
+          <button onclick="selectContract('Over/Under',this)">Over/Under</button>
+          <button onclick="selectContract('Match/Diff',this)">Match/Diff</button>
+          <button onclick="selectContract('Accum.',this)">Accum.</button>
+        </div>
+      </div>
+
+      <!-- Duration -->
+      <div class="form-group">
+        <label class="form-label">Duration</label>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:0.5rem;">
+          <select class="form-control" id="durationVal">
+            <option>1</option><option>2</option><option>3</option>
+            <option>5</option><option>10</option>
+          </select>
+          <select class="form-control" id="durationUnit">
+            <option>Tick(s)</option><option>Minute(s)</option><option>Hour(s)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Stake -->
+      <div class="form-group">
+        <label class="form-label">Stake (USD)</label>
+        <div style="position:relative;">
+          <span style="position:absolute;left:0.65rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.85rem;">$</span>
+          <input class="form-control" type="number" id="stakeInput" value="1.00" min="0.35" step="0.01" style="padding-left:1.5rem;" />
+        </div>
+        <div style="display:flex;gap:0.35rem;margin-top:0.35rem;">
+          <button class="btn btn-outline btn-sm" onclick="setStake(0.35)">$0.35</button>
+          <button class="btn btn-outline btn-sm" onclick="setStake(1)">$1</button>
+          <button class="btn btn-outline btn-sm" onclick="setStake(5)">$5</button>
+          <button class="btn btn-outline btn-sm" onclick="setStake(10)">$10</button>
+        </div>
+      </div>
+
+      <!-- Payout preview -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem;background:var(--bg3);border-radius:8px;margin-bottom:0.75rem;">
+        <span style="font-size:0.8rem;color:var(--text-muted);">Potential payout</span>
+        <span id="payoutDisplay" style="font-weight:700;color:var(--primary);font-family:monospace;">$1.80</span>
+      </div>
+
+      <!-- Buy buttons -->
+      <div class="trade-pair-btns">
+        <button class="btn btn-call btn-full" onclick="placeTrade('CALL')">
+          ▲ Rise
+          <small>Win if price rises</small>
+        </button>
+        <button class="btn btn-put btn-full" onclick="placeTrade('PUT')">
+          ▼ Fall
+          <small>Win if price falls</small>
+        </button>
+      </div>
+
+      <hr class="divider" style="margin:1rem 0;" />
+
+      <!-- Account block -->
+      <div class="stat-grid" style="margin-bottom:0.75rem;">
+        <div class="stat-block">
+          <div class="stat-label">Balance</div>
+          <div class="stat-value" id="balanceDisplay">$10,000</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-label">Session P&L</div>
+          <div class="stat-value up" id="pnlDisplay">+$0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Open positions -->
+    <div class="panel-header"><h4>Open Positions</h4></div>
+    <div style="overflow-x:auto;">
+      <table id="positionsTable">
+        <thead>
+          <tr><th>Type</th><th>Market</th><th>Stake</th><th>P&L</th></tr>
+        </thead>
+        <tbody id="positionsBody">
+          <tr><td colspan="4" style="text-align:center;padding:1.5rem;color:var(--text-muted);font-size:0.82rem;">No open positions</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel-header" style="margin-top:0.5rem;"><h4>Recent Trades</h4></div>
+    <div style="overflow-x:auto;">
+      <table id="historyTable">
+        <thead>
+          <tr><th>Type</th><th>Market</th><th>P&L</th></tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.82rem;">No trade history</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </aside>
+</div>
+
+<!-- ═══ SIGN IN MODAL ═══ -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:0.5rem;">🔐</div>
+    <div class="modal-title">Connect Your Deriv Account</div>
+    <div class="modal-body">
+      Sign in with your Deriv account to start trading. Your funds stay on Deriv — Mkulima Trader just provides the interface.
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+      <a href="#" class="btn btn-primary btn-full" onclick="MT.modal.closeAll();MT.toast.show('OAuth login coming soon — add your CLIENT_ID first','info');return false;">
+        Sign in with Deriv
+      </a>
+      <a href="https://deriv.com/signup" target="_blank" class="btn btn-outline btn-full">
+        Create a Deriv account
+      </a>
+    </div>
+    <p style="margin-top:1rem;font-size:0.75rem;">
+      Don't have an account yet? <a href="https://deriv.com/signup" target="_blank" style="color:var(--primary);">Sign up free →</a>
+    </p>
+    <button onclick="MT.modal.closeAll()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
+  </div>
+</div>
+
+<!-- ═══ TRADE CONFIRMATION MODAL ═══ -->
+<div class="modal-overlay" id="tradeModal">
+  <div class="modal">
+    <div class="modal-title">⚡ Trade Placed (Demo)</div>
+    <div class="modal-body" id="tradeModalBody">
+      Your trade has been placed in demo mode.
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="MT.modal.closeAll()">Close</button>
+      <button class="btn btn-primary" onclick="MT.modal.open('loginModal');MT.modal.close('tradeModal');">Connect Real Account</button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/main.js"></script>
+<script>
+// ─── State ────────────────────────────────────────────
+const state = {
+  selectedMarket: 'V100 (1s)',
+  selectedContract: 'Rise/Fall',
+  balance: 10000,
+  pnl: 0,
+  positions: [],
+  history: [],
+  digits: [],
+  group: 'synthetic'
+};
+
+const MARKET_GROUPS = {
+  synthetic: ['V10 (1s)', 'V25 (1s)', 'V50 (1s)', 'V75 (1s)', 'V100 (1s)',
+              'V10', 'V25', 'V50', 'V75', 'V100'],
+  jump:      ['Jump 10', 'Jump 25', 'Jump 50', 'Jump 75', 'Jump 100'],
+  step:      ['Step Index']
+};
+
+const MARKET_DISPLAY = {
+  'V10 (1s)': 'Vol 10 (1s)',  'V25 (1s)': 'Vol 25 (1s)',
+  'V50 (1s)': 'Vol 50 (1s)', 'V75 (1s)': 'Vol 75 (1s)',
+  'V100 (1s)':'Vol 100 (1s)','V10':'Vol 10','V25':'Vol 25',
+  'V50':'Vol 50','V75':'Vol 75','V100':'Vol 100',
+  'Step Index':'Step Index',
+  'Jump 10':'Jump 10','Jump 25':'Jump 25','Jump 50':'Jump 50',
+  'Jump 75':'Jump 75','Jump 100':'Jump 100'
+};
+
+// ─── Market list ──────────────────────────────────────
+function renderMarketList(filter = '') {
+  const list = document.getElementById('marketList');
+  const items = MARKET_GROUPS[state.group] || [];
+  list.innerHTML = items
+    .filter(n => !filter || n.toLowerCase().includes(filter.toLowerCase()))
+    .map(name => {
+      const d = MT.prices.data[name] || {};
+      const price = (d.price || 0).toFixed(d.pip || 2);
+      const chg   = (d.change || 0).toFixed(3);
+      const dir   = (d.change || 0) >= 0 ? 'up' : 'down';
+      return `<div class="market-item${name===state.selectedMarket?' active':''}" onclick="selectMarket('${name}')">
+        <div>
+          <div class="market-name">${MARKET_DISPLAY[name]||name}</div>
+          <div class="market-price">${price}</div>
+        </div>
+        <div class="market-change ${dir}">${dir==='up'?'▲':'▼'} ${Math.abs(chg)}%</div>
+      </div>`;
+    }).join('') || '<p style="padding:1rem;text-align:center;color:var(--text-muted);font-size:0.8rem;">No markets</p>';
+}
+
+function setMarketGroup(g, btn) {
+  state.group = g;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMarketList();
+}
+
+function filterMarkets(v) { renderMarketList(v); }
+
+function selectMarket(name) {
+  state.selectedMarket = name;
+  MT.chart.setMarket(name);
+  document.getElementById('chartMarketName').textContent = (MARKET_DISPLAY[name]||name) + ' Index';
+  state.digits = [];
+  updateDigitStrip([]);
+  renderMarketList();
+}
+
+// ─── Contract type ────────────────────────────────────
+function selectContract(type, btn) {
+  state.selectedContract = type;
+  document.querySelectorAll('#contractTabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateBtnLabels();
+}
+
+function updateBtnLabels() {
+  const labels = {
+    'Rise/Fall':  ['▲ Rise','▼ Fall'],
+    'Even/Odd':   ['🔵 Even','🔴 Odd'],
+    'Over/Under': ['▲ Over 4','▼ Under 5'],
+    'Match/Diff': ['✓ Matches','✗ Differs'],
+    'Accum.':     ['▶ Start Accu.','']
+  };
+  const [l1,l2] = labels[state.selectedContract] || ['Buy','Sell'];
+  const btns = document.querySelectorAll('.trade-pair-btns button');
+  btns[0].innerHTML = l1 + '<small></small>';
+  if (l2) { btns[1].innerHTML = l2 + '<small></small>'; btns[1].style.display=''; }
+  else { btns[1].style.display = 'none'; }
+}
+
+// ─── Stake / payout ───────────────────────────────────
+function setStake(v) {
+  document.getElementById('stakeInput').value = v.toFixed(2);
+  updatePayout();
+}
+
+function updatePayout() {
+  const stake = parseFloat(document.getElementById('stakeInput').value) || 1;
+  const payout = (stake * 1.80).toFixed(2);
+  document.getElementById('payoutDisplay').textContent = '$' + payout;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('stakeInput').addEventListener('input', updatePayout);
+});
+
+// ─── Trade placement ──────────────────────────────────
+let tradeId = 1;
+function placeTrade(direction) {
+  const stake = parseFloat(document.getElementById('stakeInput').value) || 1;
+  const market = state.selectedMarket;
+  const price  = MT.prices.data[market]?.price || 0;
+  const id     = tradeId++;
+
+  // Add to positions
+  const pos = { id, direction, market: MARKET_DISPLAY[market]||market, stake, entry: price, pnl: 0 };
+  state.positions.push(pos);
+  renderPositions();
+
+  // Simulate settlement after 2–5 seconds
+  const ticks = parseInt(document.getElementById('durationVal').value) || 1;
+  const duration = Math.max(2000, ticks * 400);
+
+  document.getElementById('tradeModalBody').innerHTML = `
+    <strong>${direction === 'CALL' ? '▲ Rise' : '▼ Fall'}</strong> on <strong>${pos.market}</strong><br>
+    Stake: <strong>$${stake.toFixed(2)}</strong> · Entry: <strong>${price.toFixed(2)}</strong><br>
+    <span style="color:var(--text-muted);font-size:0.82rem;">Settling in ${(duration/1000).toFixed(1)}s…</span>
+  `;
+  MT.modal.open('tradeModal');
+
+  setTimeout(() => {
+    MT.modal.close('tradeModal');
+    const exitPrice = MT.prices.data[market]?.price || price;
+    const win  = direction === 'CALL' ? exitPrice > price : exitPrice < price;
+    const pnl  = win ? stake * 0.85 : -stake;
+    state.balance += pnl;
+    state.pnl     += pnl;
+
+    state.positions = state.positions.filter(p => p.id !== id);
+    state.history.unshift({ ...pos, pnl, win });
+    if (state.history.length > 20) state.history.pop();
+
+    document.getElementById('balanceDisplay').textContent = '$' + state.balance.toLocaleString('en', {minimumFractionDigits:2,maximumFractionDigits:2});
+    const pnlEl = document.getElementById('pnlDisplay');
+    pnlEl.textContent = (state.pnl >= 0 ? '+$' : '-$') + Math.abs(state.pnl).toFixed(2);
+    pnlEl.className = 'stat-value ' + (state.pnl >= 0 ? 'up' : 'down');
+
+    renderPositions();
+    renderHistory();
+    MT.toast.show(win ? `✅ Win! +$${(stake*0.85).toFixed(2)}` : `❌ Loss -$${stake.toFixed(2)}`, win ? 'success' : 'error');
+  }, duration);
+}
+
+function renderPositions() {
+  const tbody = document.getElementById('positionsBody');
+  if (!state.positions.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:1.5rem;color:var(--text-muted);font-size:0.82rem;">No open positions</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.positions.map(p => `
+    <tr class="position-row">
+      <td><span class="pos-type ${p.direction==='CALL'?'pos-call':'pos-put'}">${p.direction}</span></td>
+      <td style="font-size:0.8rem;">${p.market}</td>
+      <td>$${p.stake.toFixed(2)}</td>
+      <td class="${p.pnl>=0?'up':'down'}">…</td>
+    </tr>`).join('');
+}
+
+function renderHistory() {
+  const tbody = document.getElementById('historyBody');
+  if (!state.history.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.82rem;">No trade history</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.history.slice(0,10).map(p => `
+    <tr>
+      <td><span class="pos-type ${p.direction==='CALL'?'pos-call':'pos-put'}">${p.direction}</span></td>
+      <td style="font-size:0.8rem;">${p.market}</td>
+      <td class="${p.pnl>=0?'up':'down'}">${p.pnl>=0?'+':''} $${Math.abs(p.pnl).toFixed(2)}</td>
+    </tr>`).join('');
+}
+
+// ─── Digit strip ──────────────────────────────────────
+function updateDigitStrip(digits) {
+  const strip = document.getElementById('digitStrip');
+  const colors = ['#1DBDA0','#27698A','#F5B860','#F95656','#9B59B6','#3498DB','#E67E22','#1ABC9C','#E74C3C','#95A5A6'];
+  strip.innerHTML = digits.slice(-30).map((d,i) => {
+    const isLast = i === digits.slice(-30).length - 1;
+    return `<span style="width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;
+      font-size:0.75rem;font-weight:700;font-family:monospace;
+      background:${isLast?colors[d]:'var(--bg3)'};
+      color:${isLast?'#fff':colors[d]};
+      border:${isLast?'2px solid '+colors[d]:'1px solid var(--border)'};
+      flex-shrink:0;">${d}</span>`;
+  }).join('');
+}
+
+// ─── Tick engine ──────────────────────────────────────
+function tickAll() {
+  Object.keys(MT.prices.data).forEach(n => MT.prices.tick(n));
+  renderMarketList();
+
+  const d  = MT.prices.data[state.selectedMarket];
+  if (d) {
+    document.getElementById('chartPrice').textContent = d.price.toFixed(d.pip||2);
+    const chg = d.change || 0;
+    const chgEl = document.getElementById('chartChange');
+    chgEl.textContent = (chg>=0?'+':'')+chg.toFixed(3)+'%';
+    chgEl.className = 'chart-change ' + (chg>=0?'up':'down');
+
+    // Last digit
+    const lastDigit = parseInt(d.price.toFixed(d.pip).slice(-1));
+    document.getElementById('lastDigit').textContent = lastDigit;
+    state.digits.push(lastDigit);
+    if (state.digits.length > 100) state.digits.shift();
+    updateDigitStrip(state.digits);
+  }
+}
+
+// ─── Boot ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  renderMarketList();
+  MT.chart.init('priceChart');
+  setInterval(tickAll, 400);
+  updatePayout();
+  updateBtnLabels();
+});
+</script>
+</body>
+</html>

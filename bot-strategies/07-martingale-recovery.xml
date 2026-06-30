@@ -1,0 +1,313 @@
+<xml xmlns="https://developers.google.com/blockly/xml" is_dbot="true" collection="false">
+  <variables>
+    <variable id="mg_stake">stake</variable>
+    <variable id="mg_init_stake">initial_stake</variable>
+    <variable id="mg_multiplier">multiplier</variable>
+    <variable id="mg_profit_target">profit_target</variable>
+    <variable id="mg_loss_count">loss_count</variable>
+    <variable id="mg_max_loss">max_loss_streak</variable>
+    <variable id="mg_total_risked">total_risked</variable>
+  </variables>
+
+  <!-- ═══════════════════════════════════════════════
+       MKULIMA TRADER — Martingale Recovery Bot
+       Strategy : Classic martingale on DIGITOVER 4
+                  on Vol 100 (1s). Configurable multiplier,
+                  max loss streak, and profit target.
+       Settings : initial_stake = 0.35 USD
+                  multiplier    = 2.15  (covers payout gap)
+                  profit_target = 10 USD
+                  max_loss_streak = 7
+       ═══════════════════════════════════════════════ -->
+  <block type="trade_definition" id="mg_trade_def" deletable="false" x="0" y="0">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" id="mg_market" deletable="false" movable="false">
+        <field name="MARKET_LIST">synthetic_index</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">1HZ100V</field>
+        <next>
+          <block type="trade_definition_tradetype" id="mg_tradetype" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">digits</field>
+            <field name="TRADETYPE_LIST">overunder</field>
+            <next>
+              <block type="trade_definition_contracttype" id="mg_contracttype" deletable="false" movable="false">
+                <field name="TYPE_LIST">over</field>
+                <next>
+                  <block type="trade_definition_candleinterval" id="mg_candle" deletable="false" movable="false">
+                    <field name="CANDLEINTERVAL_LIST">60</field>
+                    <next>
+                      <block type="trade_definition_restartbuysell" id="mg_restart" deletable="false" movable="false">
+                        <field name="TIME_MACHINE_ENABLED">FALSE</field>
+                        <next>
+                          <block type="trade_definition_restartonerror" id="mg_restarterr" deletable="false" movable="false">
+                            <field name="RESTARTONERROR">TRUE</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <statement name="INITIALIZATION">
+      <block type="variables_set" id="mg_init_stake_set">
+        <field name="VAR" id="mg_init_stake">initial_stake</field>
+        <value name="VALUE">
+          <block type="math_number" id="mg_init_num">
+            <field name="NUM">0.35</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set" id="mg_stake_set">
+            <field name="VAR" id="mg_stake">stake</field>
+            <value name="VALUE">
+              <block type="variables_get" id="mg_init_get">
+                <field name="VAR" id="mg_init_stake">initial_stake</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="mg_multiplier_set">
+                <field name="VAR" id="mg_multiplier">multiplier</field>
+                <value name="VALUE">
+                  <!-- 2.15 covers the ~91% payout on DIGITOVER 4 -->
+                  <block type="math_number" id="mg_mult_num">
+                    <field name="NUM">2.15</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set" id="mg_profit_set">
+                    <field name="VAR" id="mg_profit_target">profit_target</field>
+                    <value name="VALUE">
+                      <block type="math_number" id="mg_profit_num">
+                        <field name="NUM">10</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set" id="mg_maxloss_set">
+                        <field name="VAR" id="mg_max_loss">max_loss_streak</field>
+                        <value name="VALUE">
+                          <block type="math_number" id="mg_maxloss_num">
+                            <field name="NUM">7</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="variables_set" id="mg_losscount_set">
+                            <field name="VAR" id="mg_loss_count">loss_count</field>
+                            <value name="VALUE">
+                              <block type="math_number" id="mg_losscount_num">
+                                <field name="NUM">0</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="variables_set" id="mg_risked_set">
+                                <field name="VAR" id="mg_total_risked">total_risked</field>
+                                <value name="VALUE">
+                                  <block type="math_number" id="mg_risked_num">
+                                    <field name="NUM">0</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <statement name="SUBMARKET">
+      <block type="trade_definition_tradeoptions" id="mg_tradeopts">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" has_first_barrier="true" has_second_barrier="false" has_prediction="false"></mutation>
+        <field name="DURATIONTYPE_LIST">t</field>
+        <value name="DURATION">
+          <shadow type="math_number_positive" id="mg_dur_shadow">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <value name="AMOUNT">
+          <shadow type="math_number_positive" id="mg_amt_shadow">
+            <field name="NUM">0.35</field>
+          </shadow>
+          <block type="variables_get" id="mg_stake_get">
+            <field name="VAR" id="mg_stake">stake</field>
+          </block>
+        </value>
+        <value name="BARRIEROFFSET">
+          <shadow type="math_number" id="mg_barrier_shadow">
+            <field name="NUM">4</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+
+  <block type="before_purchase" id="mg_before" deletable="false" x="600" y="0">
+    <statement name="BEFOREPURCHASE_STACK">
+      <block type="purchase" id="mg_purchase">
+        <field name="PURCHASE_LIST">DIGITOVER</field>
+      </block>
+    </statement>
+  </block>
+
+  <block type="after_purchase" id="mg_after" x="600" y="300">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="controls_if" id="mg_result_check">
+        <mutation else="1"></mutation>
+        <value name="IF0">
+          <block type="contract_check_result" id="mg_win_result">
+            <field name="CHECK_RESULT">win</field>
+          </block>
+        </value>
+        <statement name="DO0">
+          <!-- WIN: full reset -->
+          <block type="variables_set" id="mg_win_stake_reset">
+            <field name="VAR" id="mg_stake">stake</field>
+            <value name="VALUE">
+              <block type="variables_get" id="mg_win_init_get">
+                <field name="VAR" id="mg_init_stake">initial_stake</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="mg_win_loss_reset">
+                <field name="VAR" id="mg_loss_count">loss_count</field>
+                <value name="VALUE">
+                  <block type="math_number" id="mg_win_loss_num">
+                    <field name="NUM">0</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set" id="mg_win_risked_reset">
+                    <field name="VAR" id="mg_total_risked">total_risked</field>
+                    <value name="VALUE">
+                      <block type="math_number" id="mg_win_risked_num">
+                        <field name="NUM">0</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="notify" id="mg_win_notify">
+                        <field name="NOTIFICATION_TYPE">success</field>
+                        <field name="NOTIFICATION_SOUND">earned-money</field>
+                        <value name="MESSAGE">
+                          <shadow type="text" id="mg_win_msg_shadow">
+                            <field name="TEXT">Recovered!</field>
+                          </shadow>
+                          <block type="text" id="mg_win_msg">
+                            <field name="TEXT">Recovery Win! Stake reset.</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="controls_if" id="mg_profit_check">
+                            <value name="IF0">
+                              <block type="logic_compare" id="mg_profit_compare">
+                                <field name="OP">LT</field>
+                                <value name="A">
+                                  <block type="total_profit" id="mg_total_profit"></block>
+                                </value>
+                                <value name="B">
+                                  <block type="variables_get" id="mg_profit_target_get">
+                                    <field name="VAR" id="mg_profit_target">profit_target</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </value>
+                            <statement name="DO0">
+                              <block type="trade_again" id="mg_win_trade_again"></block>
+                            </statement>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <!-- LOSS: apply multiplier, track streak -->
+          <block type="math_change" id="mg_loss_increment">
+            <field name="VAR" id="mg_loss_count">loss_count</field>
+            <value name="DELTA">
+              <shadow type="math_number" id="mg_loss_delta">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="variables_set" id="mg_loss_stake_multiply">
+                <field name="VAR" id="mg_stake">stake</field>
+                <value name="VALUE">
+                  <block type="math_arithmetic" id="mg_stake_calc">
+                    <field name="OP">MULTIPLY</field>
+                    <value name="A">
+                      <shadow type="math_number" id="mg_calc_a">
+                        <field name="NUM">1</field>
+                      </shadow>
+                      <block type="variables_get" id="mg_loss_stake_get">
+                        <field name="VAR" id="mg_stake">stake</field>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <shadow type="math_number" id="mg_calc_b">
+                        <field name="NUM">2.15</field>
+                      </shadow>
+                      <block type="variables_get" id="mg_mult_get">
+                        <field name="VAR" id="mg_multiplier">multiplier</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <next>
+                  <block type="notify" id="mg_loss_notify">
+                    <field name="NOTIFICATION_TYPE">error</field>
+                    <field name="NOTIFICATION_SOUND">silent</field>
+                    <value name="MESSAGE">
+                      <shadow type="text" id="mg_loss_msg_shadow">
+                        <field name="TEXT">Loss. Martingale.</field>
+                      </shadow>
+                      <block type="text" id="mg_loss_msg">
+                        <field name="TEXT">Loss. Applying x2.15 recovery.</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="controls_if" id="mg_streak_check">
+                        <value name="IF0">
+                          <block type="logic_compare" id="mg_streak_compare">
+                            <field name="OP">LT</field>
+                            <value name="A">
+                              <block type="variables_get" id="mg_loss_count_get">
+                                <field name="VAR" id="mg_loss_count">loss_count</field>
+                              </block>
+                            </value>
+                            <value name="B">
+                              <block type="variables_get" id="mg_max_loss_get">
+                                <field name="VAR" id="mg_max_loss">max_loss_streak</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <statement name="DO0">
+                          <block type="trade_again" id="mg_loss_trade_again"></block>
+                        </statement>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+</xml>

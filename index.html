@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mkulima Trader — Free AI Trading Tools for Deriv Markets</title>
+<meta name="description" content="Mkulima Trader gives you free AI-powered trading bots, a live digit analyser, and a visual bot builder — all built for Deriv markets. No coding needed.">
+<meta name="keywords" content="Deriv trading, trading bots, digit analyser, volatility index, free trading tools, AI trading">
+<meta property="og:title" content="Mkulima Trader — Free AI Trading Tools">
+<meta property="og:description" content="Free AI bots, digit analyser, and visual bot builder for Deriv markets.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mkulimatrader.com">
+
+<!-- PLACEHOLDER: Replace mkulimatrader.com with your real domain above and in og:url -->
+<!-- PLACEHOLDER: Add og:image with your banner image URL -->
+<!-- PLACEHOLDER: Replace DERIV_IB_LINK below with your actual Deriv affiliate/IB signup link -->
+
+<style>
+/* ══════════════════════════════════════════════
+   MKULIMA TRADER — Brand Tokens
+══════════════════════════════════════════════ */
+:root {
+  --teal:   #1DBDA0;
+  --blue:   #27698A;
+  --amber:  #F5B860;
+  --cream:  #FFF8F2;
+  --coral:  #F95656;
+}
+
+/* Dark theme (default) */
+[data-theme="dark"] {
+  --bg:         #0D1B2A;
+  --bg2:        #162333;
+  --bg3:        #1E2F42;
+  --surface:    #1E2F42;
+  --border:     rgba(255,255,255,0.07);
+  --text:       #E8F4F1;
+  --text2:      #7A9FB0;
+  --text3:      #4A7080;
+  --nav-bg:     #0D1B2A;
+  --hero-bg:    linear-gradient(135deg, #0D1B2A 0%, #162333 50%, #1a2d3f 100%);
+  --card-bg:    #162333;
+  --card-hover: #1E2F42;
+  --input-bg:   #1E2F42;
+  --toggle-icon: "☀️";
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --bg:         #F4F9F8;
+  --bg2:        #FFFFFF;
+  --bg3:        #EBF4F2;
+  --surface:    #FFFFFF;
+  --border:     rgba(0,0,0,0.08);
+  --text:       #0D1B2A;
+  --text2:      #4A7080;
+  --text3:      #8BAAB8;
+  --nav-bg:     #FFFFFF;
+  --hero-bg:    linear-gradient(135deg, #E8F5F2 0%, #FFF8F2 50%, #E8F2F8 100%);
+  --card-bg:    #FFFFFF;
+  --card-hover: #F0FAF8;
+  --input-bg:   #F4F9F8;
+  --toggle-icon: "🌙";
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s, color 0.3s;
+  line-height: 1.6;
+}
+
+/* ── NAV ── */
+.nav {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--nav-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo-mark {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: var(--teal);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 14px; color: var(--blue);
+  flex-shrink: 0;
+}
+.logo-text  { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+.logo-sub   { font-size: 10px; color: var(--teal); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+
+.nav-links { display: flex; align-items: center; gap: 24px; }
+.nav-links a {
+  font-size: 13px; font-weight: 500; color: var(--text2);
+  text-decoration: none; transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--teal); }
+@media (max-width: 640px) { .nav-links { display: none; } }
+
+.nav-right { display: flex; align-items: center; gap: 10px; }
+
+.theme-toggle {
+  width: 36px; height: 36px; border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.theme-toggle:hover { border-color: var(--teal); }
+
+.btn {
+  padding: 9px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: all 0.2s; border: none;
+}
+.btn-primary { background: var(--teal); color: var(--blue); }
+.btn-primary:hover { background: #18a88e; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(29,189,160,0.35); }
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--border);
+  color: var(--text);
+}
+.btn-outline:hover { border-color: var(--teal); color: var(--teal); }
+.btn-lg { padding: 14px 28px; font-size: 15px; border-radius: 12px; }
+
+/* ── HERO ── */
+.hero {
+  background: var(--hero-bg);
+  padding: 80px 24px 70px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(29,189,160,0.12), transparent);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(29,189,160,0.12);
+  border: 1px solid rgba(29,189,160,0.25);
+  color: var(--teal);
+  font-size: 12px; font-weight: 700;
+  padding: 5px 14px; border-radius: 20px;
+  margin-bottom: 20px;
+  letter-spacing: 0.03em;
+}
+.hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.8)} }
+
+.hero h1 {
+  font-size: clamp(32px, 6vw, 58px);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 18px;
+  max-width: 800px;
+  margin-left: auto; margin-right: auto;
+}
+.hero h1 span { color: var(--teal); }
+.hero p {
+  font-size: clamp(15px, 2vw, 18px);
+  color: var(--text2);
+  max-width: 560px;
+  margin: 0 auto 36px;
+  line-height: 1.7;
+}
+.hero-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+.hero-stats {
+  display: flex; justify-content: center; gap: 40px;
+  margin-top: 56px; flex-wrap: wrap;
+}
+.hero-stat { text-align: center; }
+.hero-stat .num { font-size: 28px; font-weight: 900; color: var(--teal); letter-spacing: -0.02em; }
+.hero-stat .lbl { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+/* ── SECTIONS ── */
+section { padding: 72px 24px; }
+.container { max-width: 1080px; margin: 0 auto; }
+.section-tag {
+  display: inline-block;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--teal); margin-bottom: 10px;
+}
+.section-title {
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 800; letter-spacing: -0.02em;
+  color: var(--text); margin-bottom: 10px; line-height: 1.2;
+}
+.section-sub {
+  font-size: 15px; color: var(--text2); max-width: 540px; line-height: 1.7; margin-bottom: 44px;
+}
+
+/* ── PLATFORMS ── */
+.platforms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.platform-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.platform-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--teal);
+  opacity: 0; transition: opacity 0.2s;
+}
+.platform-card:hover { background: var(--card-hover); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
+.platform-card:hover::before { opacity: 1; }
+.platform-card.featured { border-color: rgba(29,189,160,0.3); }
+.platform-card.featured::before { opacity: 1; }
+
+.card-icon { font-size: 32px; margin-bottom: 14px; }
+.card-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--teal); margin-bottom: 6px;
+}
+.card-name { font-size: 18px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.01em; }
+.card-desc { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 16px; }
+.card-link {
+  font-size: 12px; font-weight: 700; color: var(--teal);
+  display: flex; align-items: center; gap: 4px;
+}
+.card-link::after { content: '→'; transition: transform 0.2s; }
+.platform-card:hover .card-link::after { transform: translateX(4px); }
+.free-badge {
+  position: absolute; top: 16px; right: 16px;
+  background: rgba(29,189,160,0.12); color: var(--teal);
+  font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+/* ── FEATURES ── */
+.features-bg { background: var(--bg2); }
+.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.feature-item {
+  background: var(--bg3); border-radius: 14px; padding: 22px;
+  border: 1px solid var(--border);
+}
+.feature-icon { font-size: 28px; margin-bottom: 12px; }
+.feature-name { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.feature-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+/* ── MARKETS ── */
+.markets-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.market-chip {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 16px;
+  font-size: 12px; font-weight: 600; color: var(--text2);
+  transition: all 0.15s;
+  cursor: default;
+}
+.market-chip:hover { border-color: var(--teal); color: var(--teal); background: rgba(29,189,160,0.06); }
+
+/* ── STRATEGIES ── */
+.strategies-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.strategy-card {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px 20px;
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.strategy-num {
+  min-width: 30px; height: 30px; border-radius: 8px;
+  background: rgba(29,189,160,0.12); color: var(--teal);
+  font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.strategy-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.strategy-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* ── HOW IT WORKS ── */
+.how-bg { background: var(--bg2); }
+.steps-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0; }
+.how-step {
+  padding: 28px 24px;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+.how-step:last-child { border-right: none; }
+@media (max-width: 600px) { .how-step { border-right: none; border-bottom: 1px solid var(--border); } }
+.how-num {
+  font-size: 40px; font-weight: 900;
+  color: var(--teal); opacity: 0.2;
+  line-height: 1; margin-bottom: 8px;
+}
+.how-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.how-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+/* ── FAQ ── */
+.faq-list { display: flex; flex-direction: column; gap: 10px; max-width: 720px; }
+.faq-item {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+.faq-q {
+  padding: 16px 20px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  user-select: none;
+}
+.faq-q:hover { color: var(--teal); }
+.faq-chevron { font-size: 12px; color: var(--text2); transition: transform 0.2s; flex-shrink: 0; }
+.faq-item.open .faq-chevron { transform: rotate(180deg); }
+.faq-a {
+  display: none;
+  padding: 0 20px 16px;
+  font-size: 13px; color: var(--text2); line-height: 1.7;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+.faq-item.open .faq-a { display: block; }
+
+/* ── CTA BANNER ── */
+.cta-banner {
+  background: linear-gradient(135deg, var(--blue) 0%, #1a3d52 100%);
+  border-radius: 20px;
+  padding: 52px 40px;
+  text-align: center;
+  position: relative; overflow: hidden;
+  margin: 0 24px 48px;
+}
+.cta-banner::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(29,189,160,0.2), transparent);
+  pointer-events: none;
+}
+.cta-banner h2 { font-size: clamp(22px, 4vw, 34px); font-weight: 900; color: #fff; margin-bottom: 12px; letter-spacing: -0.02em; }
+.cta-banner p { color: rgba(255,255,255,0.7); font-size: 15px; margin-bottom: 28px; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 40px 24px 28px;
+}
+.footer-inner { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 32px; }
+@media (max-width: 640px) { .footer-inner { grid-template-columns: 1fr 1fr; } }
+.footer-brand .logo { margin-bottom: 10px; }
+.footer-brand p { font-size: 12px; color: var(--text2); line-height: 1.7; }
+.footer-col h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2); margin-bottom: 12px; }
+.footer-col a { display: block; font-size: 13px; color: var(--text2); text-decoration: none; margin-bottom: 8px; transition: color 0.2s; }
+.footer-col a:hover { color: var(--teal); }
+.footer-bottom {
+  max-width: 1080px; margin: 28px auto 0;
+  padding-top: 20px; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+  font-size: 11px; color: var(--text3);
+}
+.footer-bottom a { color: var(--text3); text-decoration: none; }
+.footer-bottom a:hover { color: var(--teal); }
+
+/* Divider */
+.divider { height: 1px; background: var(--border); margin: 0; }
+</style>
+</head>
+<body>
+
+<!-- ══ NAVIGATION ══ -->
+<nav class="nav">
+  <a href="/" class="logo">
+    <div class="logo-mark">MT</div>
+    <div>
+      <div class="logo-text">Mkulima Trader</div>
+      <div class="logo-sub">Free Trading Tools</div>
+    </div>
+  </a>
+
+  <div class="nav-links">
+    <a href="#platforms">Platforms</a>
+    <a href="#strategies">Strategies</a>
+    <a href="#markets">Markets</a>
+    <a href="#faq">FAQ</a>
+  </div>
+
+  <div class="nav-right">
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle dark/light mode">🌙</button>
+    <!-- PLACEHOLDER: Replace href with your Deriv IB signup link -->
+    <a href="https://track.deriv.com/_PLACEHOLDER_IB_TOKEN_/1/" class="btn btn-primary" target="_blank" rel="noopener">Get Started Free</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Live market data · 16 symbols · No coding needed
+  </div>
+
+  <h1>Trade <span>Smarter</span> with<br>Free AI-Powered Tools</h1>
+
+  <p>Mkulima Trader gives you everything you need to trade Deriv markets — a live digit analyser, visual bot builder, AI strategies, and more. All 100% free.</p>
+
+  <div class="hero-ctas">
+    <!-- PLACEHOLDER: Replace href with your Deriv IB signup link -->
+    <a href="https://track.deriv.com/_PLACEHOLDER_IB_TOKEN_/1/" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
+      🚀 Get Started Free
+    </a>
+    <!-- PLACEHOLDER: Replace href with your digit analyser URL -->
+    <a href="/analyser" class="btn btn-outline btn-lg">
+      📊 Try Digit Analyser
+    </a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="num">8+</div>
+      <div class="lbl">AI Strategies</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">16</div>
+      <div class="lbl">Markets Supported</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">100%</div>
+      <div class="lbl">Free Forever</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">0</div>
+      <div class="lbl">Coding Required</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PLATFORMS ══ -->
+<section id="platforms">
+  <div class="container">
+    <div class="section-tag">Our Platforms</div>
+    <div class="section-title">Everything you need in one place</div>
+    <div class="section-sub">Four powerful platforms, one brand. All free, all built on Deriv's infrastructure.</div>
+
+    <div class="platforms-grid">
+      <a href="/analyser" class="platform-card featured">
+        <span class="free-badge">Free</span>
+        <div class="card-icon">📊</div>
+        <div class="card-label">Most Popular</div>
+        <div class="card-name">Digit Analyser</div>
+        <div class="card-desc">Live last-digit frequency histogram with Over/Under, Even/Odd and Matches/Differs signal suggestions. No login required.</div>
+        <div class="card-link">Open Analyser</div>
+      </a>
+
+      <!-- PLACEHOLDER: Replace href with bot.yourdomain.com -->
+      <a href="/bot" class="platform-card">
+        <span class="free-badge">Free</span>
+        <div class="card-icon">🤖</div>
+        <div class="card-label">Automated Trading</div>
+        <div class="card-name">Bot Builder</div>
+        <div class="card-desc">Build your own trading bots with a visual drag-and-drop editor. No coding required. Load AI strategies with one click.</div>
+        <div class="card-link">Open Bot Builder</div>
+      </a>
+
+      <!-- PLACEHOLDER: Replace href with trader.yourdomain.com -->
+      <a href="/trader" class="platform-card">
+        <span class="free-badge">Free</span>
+        <div class="card-icon">📈</div>
+        <div class="card-label">Manual Trading</div>
+        <div class="card-name">Mkulima Trader</div>
+        <div class="card-desc">Full manual trading platform — Over/Under, Rise/Fall, Digits, Accumulators. Real-time charts with technical indicators.</div>
+        <div class="card-link">Open Trading Platform</div>
+      </a>
+
+      <!-- PLACEHOLDER: Replace href with classic.yourdomain.com -->
+      <a href="/classic" class="platform-card">
+        <span class="free-badge">Free</span>
+        <div class="card-icon">⚡</div>
+        <div class="card-label">Classic Interface</div>
+        <div class="card-name">Classic Trader</div>
+        <div class="card-desc">The original SmartTrader interface. Familiar, fast and reliable. Preferred by experienced traders who know what they want.</div>
+        <div class="card-link">Open Classic Trader</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FEATURES ══ -->
+<section class="features-bg">
+  <div class="container">
+    <div class="section-tag">Why Mkulima Trader</div>
+    <div class="section-title">Built for traders, not developers</div>
+    <div class="section-sub">Everything you need to trade Deriv markets without writing a single line of code.</div>
+
+    <div class="features-grid">
+      <div class="feature-item">
+        <div class="feature-icon">🆓</div>
+        <div class="feature-name">100% Free</div>
+        <div class="feature-desc">Every tool on Mkulima Trader is completely free. You only need a Deriv account to start trading.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🧠</div>
+        <div class="feature-name">AI Strategies</div>
+        <div class="feature-desc">Pre-built AI-powered strategies ready to run. Just set your stake and click Start — no setup needed.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">📡</div>
+        <div class="feature-name">Live Market Data</div>
+        <div class="feature-desc">Real-time tick data across 16 Deriv symbols. The digit analyser updates on every single tick.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🛡️</div>
+        <div class="feature-name">Risk Management</div>
+        <div class="feature-desc">Every bot includes take profit, stop loss, martingale multiplier, and max loss controls.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">📱</div>
+        <div class="feature-name">Mobile Friendly</div>
+        <div class="feature-desc">All platforms are fully responsive. Trade from your phone, tablet, or desktop.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-name">Instant Setup</div>
+        <div class="feature-desc">Connect your existing Deriv account in seconds. No new accounts, no deposits required.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ STRATEGIES ══ -->
+<section id="strategies">
+  <div class="container">
+    <div class="section-tag">AI Bot Strategies</div>
+    <div class="section-title">8 ready-to-run strategies</div>
+    <div class="section-sub">Load any strategy into the bot builder with one click. Configure stake, risk settings, and go.</div>
+
+    <div class="strategies-grid">
+      <div class="strategy-card">
+        <div class="strategy-num">01</div>
+        <div>
+          <div class="strategy-name">Digit Over/Under Bot</div>
+          <div class="strategy-desc">Trades based on whether the last digit is above or below your chosen barrier (0–9).</div>
+        </div>
+      </div>
+      <div class="strategy-card">
+        <div class="strategy-num">02</div>
+        <div>
+          <div class="strategy-name">Even/Odd Bot</div>
+          <div class="strategy-desc">Automatically trades even or odd digit outcomes based on live frequency analysis.</div>
+        </div>
+      </div>
+      <div class="strategy-card">
+        <div class="strategy-num">03</div>
+        <div>
+          <div class="strategy-name">Matches/Differs Bot</div>
+          <div class="strategy-desc">AI signal detection for digit match and differ trades. Targets statistically dominant digits.</div>
+        </div>
+      </div>
+      <div class="strategy-card">
+        <div class="strategy-num">04</div>
+        <div>
+          <div class="strategy-name">Rise &amp; Fall Bot</div>
+          <div class="strategy-desc">Automated rise/fall trading with HMM pattern analysis on Volatility indices.</div>
+        </div>
+      </div>
+      <div class="strategy-card">
+        <div class="strategy-num">05</div>
+        <div>
+          <div class="strategy-name">Accumulator Bot</div>
+          <div class="strategy-desc">Smart accumulator trading with automatic barrier management and stop-loss protection.</div>
+        </div>
+      </div>
+      <div class="strategy-card">
+        <div class="strategy-num">06</div>
+        <div>
+          <div class="strategy-name">Dominant Digit Differs</div>
+          <div class="strategy-desc">Detects when the most dominant digit is due for exhaustion and trades the differ.</div>
+        </div>
+      </div>
+      <div class="strategy-card">
+        <div class="strategy-num">07</div>
+        <div>
+          <div class="strategy-name">Martingale Recovery Bot</div>
+          <div class="strategy-desc">Percentage-based recovery strategy that doubles stake after a loss and resets on win.</div>
+        </div>
+      </div>
+      <div class="strategy-card">
+        <div class="strategy-num">08</div>
+        <div>
+          <div class="strategy-name">Virtual Entry Bot</div>
+          <div class="strategy-desc">Observes the market virtually before committing real stakes — reduces first-trade risk.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ HOW IT WORKS ══ -->
+<section class="how-bg">
+  <div class="container">
+    <div class="section-tag">Getting Started</div>
+    <div class="section-title">Up and running in 3 steps</div>
+    <div class="section-sub" style="margin-bottom:32px;">No downloads. No coding. Just open the browser and go.</div>
+
+    <div class="steps-row">
+      <div class="how-step">
+        <div class="how-num">01</div>
+        <div class="how-title">Create a Deriv account</div>
+        <div class="how-desc">Sign up for a free Deriv account through Mkulima Trader. Takes under 2 minutes. You get a demo account instantly.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">02</div>
+        <div class="how-title">Connect to the platform</div>
+        <div class="how-desc">Click "Login with Deriv" on any platform. Your account connects securely — no password sharing.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">03</div>
+        <div class="how-title">Pick a tool and trade</div>
+        <div class="how-desc">Open the Digit Analyser to study the market, load an AI bot strategy, or trade manually. Your choice.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ MARKETS ══ -->
+<section id="markets">
+  <div class="container">
+    <div class="section-tag">Supported Markets</div>
+    <div class="section-title">All major Deriv synthetic indices</div>
+    <div class="section-sub">All instruments available 24/7 — no market hours, no waiting.</div>
+
+    <div class="markets-grid">
+      <div class="market-chip">📊 Volatility 10 Index</div>
+      <div class="market-chip">📊 Volatility 25 Index</div>
+      <div class="market-chip">📊 Volatility 50 Index</div>
+      <div class="market-chip">📊 Volatility 75 Index</div>
+      <div class="market-chip">📊 Volatility 100 Index</div>
+      <div class="market-chip">⚡ Volatility 10(1s)</div>
+      <div class="market-chip">⚡ Volatility 25(1s)</div>
+      <div class="market-chip">⚡ Volatility 50(1s)</div>
+      <div class="market-chip">⚡ Volatility 75(1s)</div>
+      <div class="market-chip">⚡ Volatility 100(1s)</div>
+      <div class="market-chip">📐 Step Index</div>
+      <div class="market-chip">🦘 Jump 10 Index</div>
+      <div class="market-chip">🦘 Jump 25 Index</div>
+      <div class="market-chip">🦘 Jump 50 Index</div>
+      <div class="market-chip">🦘 Jump 75 Index</div>
+      <div class="market-chip">🦘 Jump 100 Index</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FAQ ══ -->
+<section id="faq">
+  <div class="container">
+    <div class="section-tag">FAQ</div>
+    <div class="section-title">Common questions</div>
+    <div class="section-sub" style="margin-bottom:32px;">Everything you need to know before getting started.</div>
+
+    <div class="faq-list">
+      <div class="faq-item open">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Is Mkulima Trader free to use?
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-a">Yes, completely free. All tools — the Digit Analyser, Bot Builder, Manual Trader, and Classic Trader — cost nothing to use. You only need a Deriv account to execute real trades.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Do I need coding skills?
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-a">No. The bot builder uses a visual drag-and-drop interface. AI strategies load with a single click. The digit analyser just runs in your browser — nothing to install or configure.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          What is the minimum stake?
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-a">The minimum stake for most strategies is $0.35 USD. Accumulator strategies start from $1.00. These limits are set by Deriv, not by Mkulima Trader.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Is this an official Deriv product?
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-a">Mkulima Trader is an independent third-party platform built on Deriv's official API. It is not owned or operated by Deriv. All trades are executed directly through your Deriv account.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Can I use Mkulima Trader on my phone?
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-a">Yes. All platforms are fully responsive and work on mobile browsers. No app download needed — just open your browser and go.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Are the AI strategies guaranteed to make profit?
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-a">No. Trading involves risk and past performance does not guarantee future results. AI strategies are tools to assist your trading decisions, not guarantees of profit. Always use appropriate risk management settings and trade only what you can afford to lose.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA BANNER ══ -->
+<div class="cta-banner">
+  <h2>Start trading smarter today</h2>
+  <p>Create your free Deriv account through Mkulima Trader and unlock all tools instantly.</p>
+  <!-- PLACEHOLDER: Replace href with your Deriv IB signup link -->
+  <a href="https://track.deriv.com/_PLACEHOLDER_IB_TOKEN_/1/" class="btn btn-primary btn-lg" target="_blank" rel="noopener" style="font-size:15px;padding:14px 32px;">
+    🚀 Create Free Deriv Account
+  </a>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="/" class="logo" style="margin-bottom:12px;display:inline-flex;">
+        <div class="logo-mark">MT</div>
+        <div style="margin-left:10px;">
+          <div class="logo-text">Mkulima Trader</div>
+          <div class="logo-sub">Free Trading Tools</div>
+        </div>
+      </a>
+      <p>Free AI-powered trading tools for Deriv markets. Not affiliated with Deriv Ltd.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Platforms</h4>
+      <a href="/analyser">Digit Analyser</a>
+      <a href="/bot">Bot Builder</a>
+      <a href="/trader">Manual Trader</a>
+      <a href="/classic">Classic Trader</a>
+    </div>
+    <div class="footer-col">
+      <h4>Resources</h4>
+      <!-- PLACEHOLDER: Add your tutorial/blog URLs -->
+      <a href="#">Getting Started</a>
+      <a href="#">Strategy Guides</a>
+      <a href="#">Bot Tutorial</a>
+      <a href="#">FAQ</a>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <!-- PLACEHOLDER: Add your social/community links -->
+      <a href="#">Telegram</a>
+      <a href="#">Discord</a>
+      <a href="#">Twitter / X</a>
+      <a href="#">YouTube</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 Mkulima Trader. All rights reserved.</span>
+    <span>
+      <!-- PLACEHOLDER: Add links to your privacy policy and terms pages -->
+      <a href="#">Privacy Policy</a> &nbsp;·&nbsp;
+      <a href="#">Terms of Use</a> &nbsp;·&nbsp;
+      <a href="https://deriv.com" target="_blank" rel="noopener">Powered by Deriv</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+// ── THEME TOGGLE ──────────────────────────────────
+const html   = document.documentElement;
+const toggle = document.getElementById('theme-toggle');
+const saved  = localStorage.getItem('mt-theme') || 'dark';
+setTheme(saved);
+
+toggle.addEventListener('click', () => {
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  setTheme(next);
+  localStorage.setItem('mt-theme', next);
+});
+
+function setTheme(t) {
+  html.setAttribute('data-theme', t);
+  toggle.textContent = t === 'dark' ? '☀️' : '🌙';
+}
+
+// ── FAQ ACCORDION ─────────────────────────────────
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+// ── SMOOTH SCROLL for nav links ───────────────────
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

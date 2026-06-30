@@ -1,0 +1,274 @@
+<xml xmlns="https://developers.google.com/blockly/xml" is_dbot="true" collection="false">
+  <variables>
+    <variable id="dou_stake">stake</variable>
+    <variable id="dou_init_stake">initial_stake</variable>
+    <variable id="dou_profit_target">profit_target</variable>
+    <variable id="dou_max_loss">max_loss_streak</variable>
+    <variable id="dou_loss_count">loss_count</variable>
+  </variables>
+
+  <!-- ═══════════════════════════════════════════════
+       MKULIMA TRADER — Digit Over/Under Bot
+       Strategy : Bet DIGITOVER 4 on Volatility 100 (1s)
+       Entry    : Fixed stake, martingale x2 on loss
+       Exit     : Stop when profit_target reached or
+                  max_loss_streak exceeded
+       ═══════════════════════════════════════════════ -->
+  <block type="trade_definition" id="dou_trade_def" deletable="false" x="0" y="0">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" id="dou_market" deletable="false" movable="false">
+        <field name="MARKET_LIST">synthetic_index</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">1HZ100V</field>
+        <next>
+          <block type="trade_definition_tradetype" id="dou_tradetype" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">digits</field>
+            <field name="TRADETYPE_LIST">overunder</field>
+            <next>
+              <block type="trade_definition_contracttype" id="dou_contracttype" deletable="false" movable="false">
+                <field name="TYPE_LIST">over</field>
+                <next>
+                  <block type="trade_definition_candleinterval" id="dou_candle" deletable="false" movable="false">
+                    <field name="CANDLEINTERVAL_LIST">60</field>
+                    <next>
+                      <block type="trade_definition_restartbuysell" id="dou_restart" deletable="false" movable="false">
+                        <field name="TIME_MACHINE_ENABLED">FALSE</field>
+                        <next>
+                          <block type="trade_definition_restartonerror" id="dou_restarterr" deletable="false" movable="false">
+                            <field name="RESTARTONERROR">TRUE</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <statement name="INITIALIZATION">
+      <block type="variables_set" id="dou_init_stake_set">
+        <field name="VAR" id="dou_init_stake">initial_stake</field>
+        <value name="VALUE">
+          <block type="math_number" id="dou_init_num">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set" id="dou_stake_set">
+            <field name="VAR" id="dou_stake">stake</field>
+            <value name="VALUE">
+              <block type="variables_get" id="dou_stake_get_init">
+                <field name="VAR" id="dou_init_stake">initial_stake</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="dou_profit_set">
+                <field name="VAR" id="dou_profit_target">profit_target</field>
+                <value name="VALUE">
+                  <block type="math_number" id="dou_profit_num">
+                    <field name="NUM">10</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set" id="dou_maxloss_set">
+                    <field name="VAR" id="dou_max_loss">max_loss_streak</field>
+                    <value name="VALUE">
+                      <block type="math_number" id="dou_maxloss_num">
+                        <field name="NUM">6</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set" id="dou_losscount_set">
+                        <field name="VAR" id="dou_loss_count">loss_count</field>
+                        <value name="VALUE">
+                          <block type="math_number" id="dou_losscount_num">
+                            <field name="NUM">0</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <statement name="SUBMARKET">
+      <block type="trade_definition_tradeoptions" id="dou_tradeopts">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" has_first_barrier="true" has_second_barrier="false" has_prediction="false"></mutation>
+        <field name="DURATIONTYPE_LIST">t</field>
+        <value name="DURATION">
+          <shadow type="math_number_positive" id="dou_dur_shadow">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <value name="AMOUNT">
+          <shadow type="math_number_positive" id="dou_amt_shadow">
+            <field name="NUM">1</field>
+          </shadow>
+          <block type="variables_get" id="dou_stake_get">
+            <field name="VAR" id="dou_stake">stake</field>
+          </block>
+        </value>
+        <value name="BARRIEROFFSET">
+          <shadow type="math_number" id="dou_barrier_shadow">
+            <field name="NUM">4</field>
+          </shadow>
+        </value>
+      </block>
+    </statement>
+  </block>
+
+  <block type="before_purchase" id="dou_before" deletable="false" x="600" y="0">
+    <statement name="BEFOREPURCHASE_STACK">
+      <block type="purchase" id="dou_purchase">
+        <field name="PURCHASE_LIST">DIGITOVER</field>
+      </block>
+    </statement>
+  </block>
+
+  <block type="after_purchase" id="dou_after" x="600" y="300">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="controls_if" id="dou_win_check">
+        <mutation else="1"></mutation>
+        <value name="IF0">
+          <block type="contract_check_result" id="dou_win_result">
+            <field name="CHECK_RESULT">win</field>
+          </block>
+        </value>
+        <statement name="DO0">
+          <!-- WIN: reset stake, check profit target -->
+          <block type="variables_set" id="dou_win_stake_reset">
+            <field name="VAR" id="dou_stake">stake</field>
+            <value name="VALUE">
+              <block type="variables_get" id="dou_win_init_get">
+                <field name="VAR" id="dou_init_stake">initial_stake</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="dou_win_losscount_reset">
+                <field name="VAR" id="dou_loss_count">loss_count</field>
+                <value name="VALUE">
+                  <block type="math_number" id="dou_win_losscount_num">
+                    <field name="NUM">0</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="notify" id="dou_win_notify">
+                    <field name="NOTIFICATION_TYPE">success</field>
+                    <field name="NOTIFICATION_SOUND">earned-money</field>
+                    <value name="MESSAGE">
+                      <shadow type="text" id="dou_win_msg_shadow">
+                        <field name="TEXT">Win!</field>
+                      </shadow>
+                      <block type="text" id="dou_win_msg">
+                        <field name="TEXT">Win! Stake reset.</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="controls_if" id="dou_profit_check">
+                        <value name="IF0">
+                          <block type="logic_compare" id="dou_profit_compare">
+                            <field name="OP">LT</field>
+                            <value name="A">
+                              <block type="total_profit" id="dou_total_profit"></block>
+                            </value>
+                            <value name="B">
+                              <block type="variables_get" id="dou_profit_target_get">
+                                <field name="VAR" id="dou_profit_target">profit_target</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <statement name="DO0">
+                          <block type="trade_again" id="dou_win_trade_again"></block>
+                        </statement>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <!-- LOSS: double stake, increment loss count, check max streak -->
+          <block type="math_change" id="dou_loss_increment">
+            <field name="VAR" id="dou_loss_count">loss_count</field>
+            <value name="DELTA">
+              <shadow type="math_number" id="dou_loss_delta">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="variables_set" id="dou_loss_stake_double">
+                <field name="VAR" id="dou_stake">stake</field>
+                <value name="VALUE">
+                  <block type="math_arithmetic" id="dou_loss_multiply">
+                    <field name="OP">MULTIPLY</field>
+                    <value name="A">
+                      <shadow type="math_number" id="dou_loss_a">
+                        <field name="NUM">1</field>
+                      </shadow>
+                      <block type="variables_get" id="dou_loss_stake_get">
+                        <field name="VAR" id="dou_stake">stake</field>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <shadow type="math_number" id="dou_loss_b">
+                        <field name="NUM">2</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </value>
+                <next>
+                  <block type="notify" id="dou_loss_notify">
+                    <field name="NOTIFICATION_TYPE">error</field>
+                    <field name="NOTIFICATION_SOUND">silent</field>
+                    <value name="MESSAGE">
+                      <shadow type="text" id="dou_loss_msg_shadow">
+                        <field name="TEXT">Loss.</field>
+                      </shadow>
+                      <block type="text" id="dou_loss_msg">
+                        <field name="TEXT">Loss. Martingale applied.</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="controls_if" id="dou_loss_streak_check">
+                        <value name="IF0">
+                          <block type="logic_compare" id="dou_streak_compare">
+                            <field name="OP">LT</field>
+                            <value name="A">
+                              <block type="variables_get" id="dou_loss_count_get">
+                                <field name="VAR" id="dou_loss_count">loss_count</field>
+                              </block>
+                            </value>
+                            <value name="B">
+                              <block type="variables_get" id="dou_max_loss_get">
+                                <field name="VAR" id="dou_max_loss">max_loss_streak</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <statement name="DO0">
+                          <block type="trade_again" id="dou_loss_trade_again"></block>
+                        </statement>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+</xml>

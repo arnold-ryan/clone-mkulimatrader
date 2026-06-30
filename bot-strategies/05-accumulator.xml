@@ -1,0 +1,190 @@
+<xml xmlns="https://developers.google.com/blockly/xml" is_dbot="true" collection="false">
+  <variables>
+    <variable id="acc_stake">stake</variable>
+    <variable id="acc_profit_target">profit_target</variable>
+    <variable id="acc_growth_rate">growth_rate</variable>
+  </variables>
+
+  <!-- ═══════════════════════════════════════════════
+       MKULIMA TRADER — Accumulator Bot
+       Strategy : Run Accumulator on Vol 100 (1s)
+                  Compound winnings until profit target
+       Growth   : 1% per tick (change growth_rate 1–5)
+       Exit     : Stop when profit_target USD reached
+       Note     : Accumulators auto-cashout on barrier
+                  breach — bot re-enters after each run
+       ═══════════════════════════════════════════════ -->
+  <block type="trade_definition" id="acc_trade_def" deletable="false" x="0" y="0">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" id="acc_market" deletable="false" movable="false">
+        <field name="MARKET_LIST">synthetic_index</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">1HZ100V</field>
+        <next>
+          <block type="trade_definition_tradetype" id="acc_tradetype" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">accumulator</field>
+            <field name="TRADETYPE_LIST">accumulator</field>
+            <next>
+              <block type="trade_definition_contracttype" id="acc_contracttype" deletable="false" movable="false">
+                <field name="TYPE_LIST">ACCU</field>
+                <next>
+                  <block type="trade_definition_candleinterval" id="acc_candle" deletable="false" movable="false">
+                    <field name="CANDLEINTERVAL_LIST">60</field>
+                    <next>
+                      <block type="trade_definition_restartbuysell" id="acc_restart" deletable="false" movable="false">
+                        <field name="TIME_MACHINE_ENABLED">FALSE</field>
+                        <next>
+                          <block type="trade_definition_restartonerror" id="acc_restarterr" deletable="false" movable="false">
+                            <field name="RESTARTONERROR">TRUE</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <statement name="INITIALIZATION">
+      <block type="variables_set" id="acc_stake_set">
+        <field name="VAR" id="acc_stake">stake</field>
+        <value name="VALUE">
+          <block type="math_number" id="acc_stake_num">
+            <field name="NUM">5</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set" id="acc_growth_set">
+            <field name="VAR" id="acc_growth_rate">growth_rate</field>
+            <value name="VALUE">
+              <!-- Growth rate: 1, 2, 3, 4, or 5 (%) -->
+              <block type="math_number" id="acc_growth_num">
+                <field name="NUM">1</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="acc_profit_set">
+                <field name="VAR" id="acc_profit_target">profit_target</field>
+                <value name="VALUE">
+                  <block type="math_number" id="acc_profit_num">
+                    <field name="NUM">20</field>
+                  </block>
+                </value>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <statement name="SUBMARKET">
+      <block type="trade_definition_tradeoptions" id="acc_tradeopts">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" has_first_barrier="false" has_second_barrier="false" has_prediction="false"></mutation>
+        <field name="DURATIONTYPE_LIST">t</field>
+        <value name="DURATION">
+          <shadow type="math_number_positive" id="acc_dur_shadow">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <value name="AMOUNT">
+          <shadow type="math_number_positive" id="acc_amt_shadow">
+            <field name="NUM">5</field>
+          </shadow>
+          <block type="variables_get" id="acc_stake_get">
+            <field name="VAR" id="acc_stake">stake</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+
+  <block type="before_purchase" id="acc_before" deletable="false" x="600" y="0">
+    <statement name="BEFOREPURCHASE_STACK">
+      <block type="purchase" id="acc_purchase">
+        <field name="PURCHASE_LIST">ACCU</field>
+      </block>
+    </statement>
+  </block>
+
+  <block type="during_purchase" id="acc_during" x="600" y="200">
+    <statement name="DURING_PURCHASE_STACK">
+      <!-- Sell early if profit target reached mid-contract -->
+      <block type="controls_if" id="acc_sell_check">
+        <value name="IF0">
+          <block type="logic_compare" id="acc_profit_compare">
+            <field name="OP">GTE</field>
+            <value name="A">
+              <block type="total_profit" id="acc_total_profit"></block>
+            </value>
+            <value name="B">
+              <block type="variables_get" id="acc_profit_target_get">
+                <field name="VAR" id="acc_profit_target">profit_target</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="check_sell" id="acc_sell_block"></block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+
+  <block type="after_purchase" id="acc_after" x="600" y="450">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="controls_if" id="acc_result_check">
+        <mutation else="1"></mutation>
+        <value name="IF0">
+          <block type="logic_compare" id="acc_profit_gate">
+            <field name="OP">LT</field>
+            <value name="A">
+              <block type="total_profit" id="acc_after_profit"></block>
+            </value>
+            <value name="B">
+              <block type="variables_get" id="acc_after_target_get">
+                <field name="VAR" id="acc_profit_target">profit_target</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <!-- Profit target not yet reached — re-enter -->
+          <block type="notify" id="acc_reenter_notify">
+            <field name="NOTIFICATION_TYPE">success</field>
+            <field name="NOTIFICATION_SOUND">silent</field>
+            <value name="MESSAGE">
+              <shadow type="text" id="acc_reenter_msg_shadow">
+                <field name="TEXT">Re-entering...</field>
+              </shadow>
+              <block type="text" id="acc_reenter_msg">
+                <field name="TEXT">Accumulator ended. Re-entering.</field>
+              </block>
+            </value>
+            <next>
+              <block type="trade_again" id="acc_trade_again"></block>
+            </next>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <!-- Profit target reached — stop -->
+          <block type="notify" id="acc_done_notify">
+            <field name="NOTIFICATION_TYPE">success</field>
+            <field name="NOTIFICATION_SOUND">earned-money</field>
+            <value name="MESSAGE">
+              <shadow type="text" id="acc_done_msg_shadow">
+                <field name="TEXT">Target reached!</field>
+              </shadow>
+              <block type="text" id="acc_done_msg">
+                <field name="TEXT">Profit target reached. Bot stopped.</field>
+              </block>
+            </value>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+</xml>
