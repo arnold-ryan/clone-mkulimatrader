@@ -15,6 +15,7 @@
     { "source": "/trader",   "destination": "/trader/index.html" },
     { "source": "/bot",      "destination": "/bot/index.html" },
     { "source": "/classic",  "destination": "/classic/index.html" },
-    { "source": "/analyser", "destination": "/analyser/index.html" }
+    { "source": "/analyser", "destination": "/analyser/index.html" },
+    { "source": "/callback", "destination": "/callback/index.html" }
   ]
 }

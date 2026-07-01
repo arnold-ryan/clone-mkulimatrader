@@ -225,10 +225,8 @@
     <div class="modal-title">Connect Your Deriv Account</div>
     <div class="modal-body">Sign in with your Deriv account to trade with real funds.</div>
     <div style="display:flex;flex-direction:column;gap:0.75rem;">
-      <!-- OAuth login with client_id — register redirect URI at developers.deriv.com before going live -->
-      <a href="https://auth.deriv.com/oauth2/auth?response_type=code&client_id=33HZlRw8XSyl7WGXqqnog&redirect_uri=https://mkulimatrader.com/callback&scope=trade+account_manage&prompt=login" target="_blank" rel="noopener" class="btn btn-primary btn-full">Sign in with Deriv</a>
-      <!-- Revenue share IB link -->
-      <a href="https://deriv.partners/rx?sidc=6D203A32-6635-4783-BB11-1296C141843C&utm_campaign=dynamicworks&utm_medium=affiliate&utm_source=CU83616" target="_blank" rel="noopener" class="btn btn-outline btn-full">Create Account</a>
+      <button onclick="MT_AUTH.login()" class="btn btn-primary btn-full">Sign in with Deriv</button>
+      <button onclick="MT_AUTH.signup()" class="btn btn-outline btn-full">Create Account</button>
     </div>
     <button onclick="MT.modal.closeAll()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
   </div>
@@ -247,6 +245,7 @@
 </div>
 
 <script src="../assets/main.js"></script>
+<script src="../assets/auth.js"></script>
 <script>
 let cState = {
   contract: 'Rise/Fall',

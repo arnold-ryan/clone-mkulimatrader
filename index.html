@@ -399,9 +399,8 @@ footer {
   <div class="nav-right">
     <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle dark/light mode">🌙</button>
     <!-- Log In: OAuth flow with real client_id -->
-    <a href="https://auth.deriv.com/oauth2/auth?response_type=code&client_id=33HZlRw8XSyl7WGXqqnog&redirect_uri=https://mkulimatrader.com/callback&scope=trade+account_manage&prompt=login" target="_blank" rel="noopener" class="btn btn-outline" style="padding:8px 18px;font-size:14px;">Log In</a>
-    <!-- Sign Up: Revenue share IB link -->
-    <a href="https://deriv.partners/rx?sidc=6D203A32-6635-4783-BB11-1296C141843C&utm_campaign=dynamicworks&utm_medium=affiliate&utm_source=CU83616" target="_blank" rel="noopener" class="btn btn-primary" style="padding:8px 18px;font-size:14px;">Sign Up Free</a>
+    <button onclick="MT_AUTH.login()" class="btn btn-outline" style="padding:8px 18px;font-size:14px;">Log In</button>
+    <button onclick="MT_AUTH.signup()" class="btn btn-primary" style="padding:8px 18px;font-size:14px;">Sign Up Free</button>
   </div>
 </nav>
 
@@ -417,8 +416,8 @@ footer {
   <p>Mkulima Trader gives you everything you need to trade Deriv markets — a live digit analyser, visual bot builder, AI strategies, and more. All 100% free.</p>
 
   <div class="hero-ctas">
-    <a href="https://deriv.partners/rx?sidc=6D203A32-6635-4783-BB11-1296C141843C&utm_campaign=dynamicworks&utm_medium=affiliate&utm_source=CU83616" target="_blank" rel="noopener" class="btn btn-primary btn-lg">🚀 Create Free Deriv Account</a>
-    <a href="https://auth.deriv.com/oauth2/auth?response_type=code&client_id=33HZlRw8XSyl7WGXqqnog&redirect_uri=https://mkulimatrader.com/callback&scope=trade+account_manage&prompt=login" target="_blank" rel="noopener" class="btn btn-outline btn-lg">🔐 Log In</a>
+    <button onclick="MT_AUTH.signup()" class="btn btn-primary btn-lg">🚀 Create Free Deriv Account</button>
+    <button onclick="MT_AUTH.login()"  class="btn btn-outline btn-lg">🔐 Log In</button>
   </div>
 
   <div class="hero-stats">
@@ -714,10 +713,9 @@ footer {
 <div class="cta-banner">
   <h2>Start trading smarter today</h2>
   <p>Create your free Deriv account through Mkulima Trader and unlock all tools instantly.</p>
-  <!-- Revenue share IB link: primary CTA -->
-  <a href="https://deriv.partners/rx?sidc=6D203A32-6635-4783-BB11-1296C141843C&utm_campaign=dynamicworks&utm_medium=affiliate&utm_source=CU83616" target="_blank" rel="noopener" class="btn btn-primary btn-lg" style="font-size:15px;padding:14px 32px;">
+  <button onclick="MT_AUTH.signup()" class="btn btn-primary btn-lg" style="font-size:15px;padding:14px 32px;">
     🚀 Create Free Deriv Account
-  </a>
+  </button>
 </div>
 
 <!-- ══ FOOTER ══ -->
@@ -807,5 +805,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 </script>
+<script src="assets/auth.js"></script>
 </body>
 </html>
