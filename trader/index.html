@@ -213,15 +213,17 @@
       Sign in with your Deriv account to start trading. Your funds stay on Deriv — Mkulima Trader just provides the interface.
     </div>
     <div style="display:flex;flex-direction:column;gap:0.75rem;">
-      <a href="#" class="btn btn-primary btn-full" onclick="MT.modal.closeAll();MT.toast.show('OAuth login coming soon — add your CLIENT_ID first','info');return false;">
+      <!-- OAuth login: client_id=33HZlRw8XSyl7WGXqqnog — register redirect URI at developers.deriv.com before going live -->
+      <a href="https://auth.deriv.com/oauth2/auth?response_type=code&client_id=33HZlRw8XSyl7WGXqqnog&redirect_uri=https://mkulimatrader.com/callback&scope=trade+account_manage&prompt=login" target="_blank" rel="noopener" class="btn btn-primary btn-full">
         Sign in with Deriv
       </a>
-      <a href="https://deriv.com/signup" target="_blank" class="btn btn-outline btn-full">
+      <!-- Revenue share IB link: new signups attributed to your IB account -->
+      <a href="https://deriv.partners/rx?sidc=6D203A32-6635-4783-BB11-1296C141843C&utm_campaign=dynamicworks&utm_medium=affiliate&utm_source=CU83616" target="_blank" rel="noopener" class="btn btn-outline btn-full">
         Create a Deriv account
       </a>
     </div>
     <p style="margin-top:1rem;font-size:0.75rem;">
-      Don't have an account yet? <a href="https://deriv.com/signup" target="_blank" style="color:var(--primary);">Sign up free →</a>
+      Don't have an account yet? <a href="https://deriv.partners/rx?sidc=6D203A32-6635-4783-BB11-1296C141843C&utm_campaign=dynamicworks&utm_medium=affiliate&utm_source=CU83616" target="_blank" rel="noopener" style="color:var(--primary);">Sign up free →</a>
     </p>
     <button onclick="MT.modal.closeAll()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
   </div>
